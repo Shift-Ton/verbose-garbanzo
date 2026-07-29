@@ -1,0 +1,3689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Alumni Yearbook Claim Lookup</title>  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --surface-alt: #f7f8f7;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e5e7eb;
+      --line-strong: #d1d5db;
+      --primary: #16a34a;
+      --primary-hover: #15803d;
+      --primary-soft: #ecfdf5;
+      --danger: #b91c1c;
+      --danger-soft: #fef2f2;
+      --warning: #b45309;
+      --warning-soft: #fffbeb;
+      --info: #2563eb;
+      --info-soft: #eff6ff;
+      --paper: #fffdf4;
+      --paper-deep: #f7efd8;
+      --ink: #3f3426;
+      --leather: #7a3f25;
+      --leather-dark: #4d2416;
+      --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.07);
+      --shadow-lg: 0 24px 70px rgba(15, 23, 42, 0.22);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * , *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(22, 163, 74, 0.07), transparent 34rem),
+        linear-gradient(180deg, #fbfdfb 0%, var(--bg) 38%);
+    }
+    body.modal-open { overflow: hidden; }
+
+    h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+    h2 { font-size: 16px; font-weight: 600; letter-spacing: -0.005em; }
+    p { color: var(--muted); font-size: 14px; }
+
+    .page-shell {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 4px 20px;
+    }
+    .topbar-mark {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 13px;
+    }
+    .topbar-title { font-size: 14px; font-weight: 600; }
+    .topbar-sub { font-size: 12px; color: var(--muted); }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (min-width: 960px) {
+      .layout-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+    }
+    .main-column, .side-column { display: grid; gap: 16px; min-width: 0; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lookup-head { margin-bottom: 18px; }
+    .lookup-head .eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .lookup-head p { margin-top: 6px; }
+
+    /* Hide legacy decorative elements */
+    .brand-row, .light-badge, .search-note, .hero-copy .eyebrow + h1 + p + .search-note { display: none; }
+
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: 1fr; }
+    @media (min-width: 560px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .field-label-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .step-badge {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--surface-alt);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      display: grid; place-items: center;
+      border: 1px solid var(--line);
+    }
+    .field.is-ready .step-badge {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-color: transparent;
+    }
+    .field-helper { font-size: 11px; color: var(--muted); }
+    .field input[type="text"], .field input[type="date"] {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      font-size: 15px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .field.is-locked input {
+      background: var(--surface-alt);
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 13px;
+      padding: 0;
+      color: var(--muted);
+      min-height: 18px;
+    }
+    .status.success { color: var(--primary); }
+    .status.warning { color: var(--warning); }
+    .status.error { color: var(--danger); }
+    .status:empty { display: none; }
+
+    .action-row {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .actions-left, .actions-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    @media (min-width: 720px) {
+      .action-row { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s, border-color .15s, color .15s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(0) scale(.98); }
+    .btn:focus-visible { outline: 3px solid rgba(22, 163, 74, .2); outline-offset: 2px; }
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--line-strong); }
+    .btn-secondary:hover { background: var(--surface-alt); }
+    .btn-ghost { background: transparent; color: var(--muted); }
+    .btn-ghost:hover { color: var(--text); background: var(--surface-alt); }
+    .btn-small { padding: 6px 10px; font-size: 13px; }
+    .btn-icon-only { padding: 10px; }
+    .btn-select {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      background: var(--surface);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .btn-select svg { width: 14px; height: 14px; }
+    .btn-select:hover { background: var(--primary-soft); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    /* On very small screens, action buttons expand full width for easier tapping */
+    @media (max-width: 480px) {
+      .actions-left, .actions-right { width: 100%; }
+      .actions-left .btn, .actions-right .btn { flex: 1 1 auto; min-width: 0; }
+    }
+
+    /* Results */
+    .results-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .results-title-wrap { min-width: 0; }
+    .results-context, .logbook-subtitle { font-size: 12px; margin-top: 4px; }
+    .result-count {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--surface-alt);
+      border: 1px solid var(--line);
+      padding: 4px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .is-hidden { display: none !important; }
+
+    .table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      table-layout: auto;
+    }
+    .results-table thead th {
+      text-align: left;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-alt);
+      white-space: nowrap;
+    }
+    .results-table tbody td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      color: var(--text);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .results-table tbody td.cell-compact { white-space: nowrap; }
+    .results-table tbody tr:last-child td { border-bottom: 0; }
+    .empty-state-row td { text-align: center; color: var(--muted); padding: 20px; }
+    .empty-cell { color: var(--muted); }
+
+    /* Mobile: convert table rows into cards */
+    @media (max-width: 720px) {
+      .results-table thead { display: none; }
+      .results-table, .results-table tbody, .results-table tr, .results-table td { display: block; width: 100%; }
+      .results-table tr {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        background: var(--surface);
+      }
+      .results-table tbody td {
+        border: 0;
+        padding: 6px 0;
+        display: grid;
+        grid-template-columns: 110px minmax(0, 1fr);
+        align-items: start;
+        gap: 12px;
+        font-size: 13px;
+        white-space: normal;
+      }
+      .results-table tbody td.cell-compact { white-space: normal; }
+      .results-table tbody td::before {
+        content: attr(data-label);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        font-weight: 600;
+        padding-top: 2px;
+      }
+      .results-table tbody td:last-child {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--line);
+      }
+      .results-table tbody td:last-child::before { display: none; }
+      .empty-state-row td { display: block; text-align: center; }
+      .empty-state-row td::before { display: none; }
+    }
+
+    /* Logbook launcher */
+    .logbook-card { overflow: hidden; }
+    .logbook-launcher {
+      position: relative;
+      min-height: 190px;
+      border: 1px solid #eadfc5;
+      border-radius: 14px;
+      padding: 18px;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(122, 63, 37, .09) 0 14px, transparent 14px),
+        repeating-linear-gradient(0deg, transparent 0 27px, rgba(151, 120, 76, .12) 27px 28px),
+        var(--paper);
+      box-shadow: inset 0 0 0 5px rgba(122, 63, 37, .035);
+    }
+    .logbook-launcher::after {
+      content: '';
+      position: absolute;
+      inset: 10px 10px auto auto;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 2px dashed rgba(122, 63, 37, .22);
+      transform: rotate(10deg);
+      pointer-events: none;
+    }
+    .logbook-launcher-top {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .logbook-book-icon {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(145deg, var(--leather), var(--leather-dark));
+      color: #fff8e8;
+      box-shadow: 0 8px 18px rgba(77, 36, 22, .25);
+    }
+    .logbook-book-icon svg { width: 25px; height: 25px; }
+    .logbook-launcher h2 {
+      color: var(--ink);
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 20px;
+    }
+    .logbook-launcher p { color: #796b59; }
+    .logbook-launcher-actions {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-book {
+      flex: 1 1 160px;
+      background: linear-gradient(145deg, var(--leather), var(--leather-dark));
+      color: #fffaf0;
+      box-shadow: 0 8px 18px rgba(77, 36, 22, .2);
+    }
+    .btn-book:hover { background: linear-gradient(145deg, #8a492b, #572819); }
+    .logbook-updated { font-size: 11px; color: #887867; }
+
+    /* Single-page, scrollable book-style logbook */
+    .book-modal {
+      width: min(760px, 100%);
+      max-width: 760px;
+      padding: 0;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      background: #f5ead0;
+    }
+    .book-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px 22px;
+      color: #fff8e8;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.08), transparent 24%),
+        linear-gradient(135deg, var(--leather), var(--leather-dark));
+      border-bottom: 1px solid rgba(0,0,0,.18);
+    }
+    .book-modal-header h2 {
+      margin: 0;
+      color: inherit;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 22px;
+    }
+    .book-modal-header p {
+      color: rgba(255,248,232,.76);
+      margin-top: 2px;
+      font-size: 12px;
+    }
+    .book-modal-header .modal-close {
+      position: static;
+      color: #fff8e8;
+      background: rgba(255,255,255,.1);
+      flex: 0 0 auto;
+    }
+    .book-modal-header .modal-close:hover { background: rgba(255,255,255,.18); color: #fff; }
+    .book-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 18px;
+      background: #fbf5e7;
+      border-bottom: 1px solid #dfd1b4;
+    }
+    .book-toolbar-copy {
+      min-width: 0;
+      color: #796b59;
+      font-size: 12px;
+    }
+    .book-toolbar-copy strong {
+      display: block;
+      color: #4d4032;
+      font-size: 13px;
+    }
+    .book-shell {
+      position: relative;
+      padding: clamp(9px, 2.4vw, 20px);
+      background:
+        radial-gradient(circle at 50% 0, rgba(0,0,0,.09), transparent 38%),
+        linear-gradient(135deg, #d8c29b, #cdb287);
+      overflow: hidden;
+    }
+    .book-stage {
+      position: relative;
+      width: min(100%, 680px);
+      margin: 0 auto;
+      perspective: 1900px;
+      filter: drop-shadow(0 18px 18px rgba(75,48,24,.24));
+    }
+    .book-stage::before {
+      content: '';
+      position: absolute;
+      z-index: 0;
+      top: 8px;
+      right: -8px;
+      bottom: -9px;
+      left: 8px;
+      border-radius: 5px 14px 14px 5px;
+      background: #9b6a44;
+      box-shadow: 5px 7px 0 #74452c, 8px 10px 18px rgba(52,31,17,.22);
+    }
+    .book-page {
+      position: relative;
+      z-index: 2;
+      height: clamp(430px, 62vh, 650px);
+      min-height: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(125,94,51,.045), transparent 16%),
+        repeating-linear-gradient(0deg, transparent 0 45px, rgba(98,122,151,.12) 45px 46px),
+        var(--paper);
+      border: 1px solid #ded0b3;
+      border-radius: 5px 14px 14px 5px;
+      overflow: hidden;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      box-shadow: inset 18px 0 25px -24px rgba(51,32,15,.7);
+    }
+    .book-page::before,
+    .book-turn-face::before {
+      content: '';
+      position: absolute;
+      z-index: 3;
+      top: 20px;
+      bottom: 20px;
+      left: 25px;
+      width: 1px;
+      background: rgba(190,64,64,.23);
+      pointer-events: none;
+    }
+    .book-page-scroll {
+      position: absolute;
+      inset: 0;
+      padding: 28px 30px 43px 35px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(104,77,48,.45) transparent;
+    }
+    .book-page-scroll::-webkit-scrollbar { width: 8px; }
+    .book-page-scroll::-webkit-scrollbar-track { background: transparent; }
+    .book-page-scroll::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 999px;
+      background: rgba(104,77,48,.42);
+      background-clip: padding-box;
+    }
+    .book-page-number {
+      position: absolute;
+      z-index: 5;
+      right: 22px;
+      bottom: 13px;
+      font: italic 12px Georgia, serif;
+      color: #8b7a65;
+      pointer-events: none;
+    }
+
+    /* Only this paper leaf turns. The modal, toolbar, footer, and book cover stay fixed. */
+    .book-turn-sheet {
+      position: absolute;
+      z-index: 12;
+      inset: 0;
+      display: none;
+      pointer-events: none;
+      transform-style: preserve-3d;
+      transform-origin: left center;
+      will-change: transform;
+    }
+    .book-turn-sheet.is-prepared { display: block; }
+    .book-turn-sheet.turn-next {
+      animation: single-page-turn-next .88s cubic-bezier(.55,.02,.18,1) both;
+    }
+    .book-turn-sheet.turn-previous {
+      animation: single-page-turn-previous .88s cubic-bezier(.55,.02,.18,1) both;
+    }
+    .book-turn-face {
+      position: absolute;
+      inset: 0;
+      padding: 28px 30px 43px 35px;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(125,94,51,.045), transparent 16%),
+        repeating-linear-gradient(0deg, transparent 0 45px, rgba(98,122,151,.12) 45px 46px),
+        var(--paper);
+      border: 1px solid #ded0b3;
+      border-radius: 5px 14px 14px 5px;
+      overflow: hidden;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      box-shadow: inset 18px 0 25px -24px rgba(51,32,15,.7), 0 12px 28px rgba(51,32,15,.22);
+    }
+    .book-turn-front { transform: rotateY(0deg); }
+    .book-turn-back {
+      transform: rotateY(180deg);
+      background:
+        linear-gradient(270deg, rgba(125,94,51,.07), transparent 18%),
+        repeating-linear-gradient(0deg, transparent 0 45px, rgba(98,122,151,.08) 45px 46px),
+        #fbf3df;
+    }
+    .book-turn-back::after {
+      content: 'RSU Yearbook';
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: rgba(93,70,43,.15);
+      font: italic 28px Georgia, serif;
+      transform: rotate(-8deg);
+    }
+    .book-turn-sheet::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      border-radius: inherit;
+      pointer-events: none;
+      opacity: 0;
+      background: linear-gradient(90deg, transparent 28%, rgba(50,30,14,.28), transparent 72%);
+      animation: single-page-shadow .88s ease-in-out both;
+    }
+    @keyframes single-page-turn-next {
+      0% { transform: rotateY(0deg); }
+      42% { transform: rotateY(-82deg) translateZ(2px); }
+      52% { transform: rotateY(-98deg) translateZ(2px); }
+      100% { transform: rotateY(-180deg); }
+    }
+    @keyframes single-page-turn-previous {
+      0% { transform: rotateY(-180deg); }
+      46% { transform: rotateY(-98deg) translateZ(2px); }
+      56% { transform: rotateY(-82deg) translateZ(2px); }
+      100% { transform: rotateY(0deg); }
+    }
+    @keyframes single-page-shadow {
+      0%, 100% { opacity: 0; }
+      44%, 56% { opacity: 1; }
+    }
+
+    .book-page-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      padding-bottom: 7px;
+      margin-bottom: 6px;
+      border-bottom: 2px solid rgba(122,63,37,.28);
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+    .book-page-heading strong { font-size: 16px; }
+    .book-page-heading span { font-size: 11px; color: #8b7a65; }
+    .book-column-head,
+    .book-entry {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(70px, .42fr) minmax(122px, .72fr);
+      gap: 12px;
+      align-items: center;
+    }
+    .book-column-head {
+      position: sticky;
+      z-index: 2;
+      top: -28px;
+      min-height: 32px;
+      padding: 7px 2px 6px;
+      color: #6f5d49;
+      background: rgba(255,250,238,.96);
+      border-bottom: 1px solid rgba(111,83,50,.34);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+      backdrop-filter: blur(3px);
+    }
+    .book-column-head span:nth-child(2),
+    .book-entry-batch { text-align: center; }
+    .book-column-head span:last-child,
+    .book-entry-date { text-align: right; }
+    .book-entry {
+      min-height: 45px;
+      padding: 8px 2px 7px;
+      border-bottom: 1px dashed rgba(111,83,50,.24);
+    }
+    .book-entry:last-child { border-bottom: 0; }
+    .book-entry-name {
+      min-width: 0;
+      font: 700 13px/1.25 Georgia, 'Times New Roman', serif;
+      color: #3d2e20;
+      overflow-wrap: anywhere;
+    }
+    .book-entry-batch,
+    .book-entry-date {
+      min-width: 0;
+      color: #5f5141;
+      font-size: 12px;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+    .book-entry-batch {
+      color: var(--leather);
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 700;
+    }
+    .book-empty {
+      min-height: 310px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: #8a7a66;
+      padding: 30px;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+    .book-empty-emoji { display: block; font-size: 36px; margin-bottom: 10px; }
+    .book-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px 15px;
+      background: #fbf5e7;
+      border-top: 1px solid #dfd1b4;
+      flex-wrap: wrap;
+    }
+    .book-page-status { font-size: 12px; color: #796b59; }
+    .book-pagination { display: flex; gap: 8px; }
+    .book-loading { opacity: .58; pointer-events: none; }
+    .book-nav-short { display: none; }
+
+    @media (max-width: 760px) {
+      .modal-backdrop { padding: 8px; }
+      .book-modal-header { padding: 14px 15px; }
+      .book-modal-header h2 { font-size: 18px; }
+      .book-modal-header p { font-size: 11px; }
+      .book-toolbar { padding: 10px 12px; }
+      .book-toolbar-copy { font-size: 11px; }
+      .book-shell { padding: 10px; }
+      .book-stage { width: 100%; }
+      .book-page { height: min(61vh, 580px); min-height: 410px; }
+      .book-page-scroll,
+      .book-turn-face { padding: 24px 22px 40px 30px; }
+      .book-page::before,
+      .book-turn-face::before { left: 21px; }
+      .book-column-head,
+      .book-entry { grid-template-columns: minmax(0, 1.28fr) minmax(58px, .4fr) minmax(104px, .72fr); gap: 8px; }
+      .book-entry-name { font-size: 12.5px; }
+      .book-entry-batch, .book-entry-date { font-size: 11.5px; }
+      .book-footer { padding: 10px 12px; }
+      .book-page-status { flex: 1 1 100%; text-align: center; }
+      .book-pagination { width: 100%; }
+      .book-pagination .btn { flex: 1; min-height: 42px; }
+    }
+
+    @media (max-width: 480px) {
+      .logbook-launcher { padding: 15px; }
+      .logbook-launcher-top { gap: 10px; }
+      .logbook-book-icon { width: 42px; height: 42px; flex-basis: 42px; }
+      .logbook-launcher h2 { font-size: 17px; }
+      .logbook-launcher p { font-size: 12px; }
+      .logbook-launcher-actions { align-items: stretch; }
+      .btn-book { flex-basis: 100%; width: 100%; }
+      .logbook-updated { align-self: center; }
+      .book-modal-header h2 { font-size: 16px; }
+      .book-modal-header p { display: none; }
+      .book-toolbar-copy strong { font-size: 12px; }
+      .book-toolbar-copy span { display: none; }
+      .book-shell { padding: 7px; }
+      .book-stage::before { top: 5px; right: -4px; bottom: -5px; left: 4px; box-shadow: 3px 4px 0 #74452c, 5px 7px 13px rgba(52,31,17,.2); }
+      .book-page { height: min(60vh, 525px); min-height: 390px; }
+      .book-page-scroll,
+      .book-turn-face { padding: 21px 14px 36px 23px; }
+      .book-page::before,
+      .book-turn-face::before { left: 16px; }
+      .book-page-heading strong { font-size: 13px; }
+      .book-page-heading span { font-size: 9px; }
+      .book-column-head,
+      .book-entry { grid-template-columns: minmax(0, 1.18fr) minmax(48px, .38fr) minmax(84px, .72fr); gap: 5px; }
+      .book-column-head { top: -21px; font-size: 8.5px; }
+      .book-entry { min-height: 42px; padding: 7px 1px; }
+      .book-entry-name { font-size: 11.2px; }
+      .book-entry-batch, .book-entry-date { font-size: 10px; }
+      .book-nav-wide { display: none; }
+      .book-nav-short { display: inline; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .book-turn-sheet.turn-next,
+      .book-turn-sheet.turn-previous,
+      .book-turn-sheet::after { animation-duration: .01ms !important; }
+    }
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 60;
+    }
+    .modal-backdrop.show { display: flex; animation: backdrop-in .18s ease-out both; }
+    .modal-backdrop.show .modal { animation: modal-pop .24s cubic-bezier(.2,.9,.25,1.18) both; }
+    @keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes modal-pop { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-close {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: transparent;
+      border: 0;
+      font-size: 22px;
+      line-height: 1;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .modal-close:hover { background: var(--surface-alt); color: var(--text); }
+    .modal h2 { font-size: 18px; margin-bottom: 6px; }
+    .modal-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+    .modal-icon {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    .modal-icon-success { background: var(--primary-soft); color: var(--primary); }
+    .modal-icon-warning { background: var(--warning-soft); color: var(--warning); }
+    .modal-icon-info { background: var(--info-soft); color: var(--info); }
+    .modal-icon-error { background: var(--danger-soft); color: var(--danger); }
+    .cute-face {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      font-size: 30px;
+      box-shadow: inset 0 -5px 12px rgba(15,23,42,.05);
+      animation: cute-bob 1.8s ease-in-out infinite;
+    }
+    .cute-face::before, .cute-face::after {
+      content: '✦';
+      position: absolute;
+      color: #f59e0b;
+      font-size: 11px;
+      animation: sparkle 1.4s ease-in-out infinite alternate;
+    }
+    .cute-face::before { top: -5px; right: -6px; }
+    .cute-face::after { bottom: 1px; left: -9px; animation-delay: .35s; }
+    .feedback-modal { text-align: center; }
+    .feedback-modal .cute-face { margin: 0 auto 14px; }
+    .feedback-modal[data-feedback-type='warning'] { border-top: 5px solid #f59e0b; }
+    .feedback-modal[data-feedback-type='success'] { border-top: 5px solid var(--primary); }
+    .feedback-modal[data-feedback-type='info'] { border-top: 5px solid var(--info); }
+    .feedback-modal[data-feedback-type='error'] { border-top: 5px solid var(--danger); }
+    @keyframes cute-bob { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-4px) rotate(1deg); } }
+    @keyframes sparkle { from { transform: scale(.7) rotate(0deg); opacity: .45; } to { transform: scale(1.15) rotate(18deg); opacity: 1; } }
+
+    /* Mini animated loading and connection dialogs */
+    .mini-status-modal {
+      width: min(330px, 100%);
+      padding: 22px 20px 20px;
+      text-align: center;
+      overflow: hidden;
+      border: 1px solid rgba(22, 163, 74, .13);
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(34,197,94,.11), transparent 38%),
+        var(--surface);
+    }
+    .mini-status-modal h2 { margin-bottom: 5px; }
+    .mini-status-modal .modal-subtitle { margin-bottom: 0; }
+    .loading-mascot-wrap {
+      position: relative;
+      width: 88px;
+      height: 78px;
+      margin: 0 auto 10px;
+      display: grid;
+      place-items: center;
+    }
+    .loading-mascot {
+      position: relative;
+      z-index: 2;
+      width: 62px;
+      height: 62px;
+      display: grid;
+      place-items: center;
+      border-radius: 20px;
+      background: linear-gradient(145deg, var(--primary-soft), #dcfce7);
+      box-shadow: 0 10px 25px rgba(22,163,74,.16), inset 0 -5px 12px rgba(15,23,42,.05);
+      font-size: 30px;
+      animation: loading-hop 1.05s ease-in-out infinite;
+    }
+    .loading-mascot::before,
+    .loading-mascot::after {
+      content: '✦';
+      position: absolute;
+      color: #f59e0b;
+      font-size: 11px;
+      animation: sparkle 1s ease-in-out infinite alternate;
+    }
+    .loading-mascot::before { top: -6px; right: -8px; }
+    .loading-mascot::after { bottom: 0; left: -10px; animation-delay: .28s; }
+    .loading-orbit {
+      position: absolute;
+      inset: 2px;
+      border-radius: 50%;
+      border: 2px dashed rgba(22,163,74,.24);
+      animation: loading-orbit 3s linear infinite;
+    }
+    .loading-dots-row {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .loading-dots-row span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: loading-dot 1s ease-in-out infinite;
+    }
+    .loading-dots-row span:nth-child(2) { animation-delay: .14s; }
+    .loading-dots-row span:nth-child(3) { animation-delay: .28s; }
+    .offline-modal {
+      text-align: center;
+      border-top: 5px solid #f59e0b;
+      background:
+        radial-gradient(circle at 85% 5%, rgba(245,158,11,.12), transparent 34%),
+        var(--surface);
+    }
+    .offline-modal .cute-face { margin: 0 auto 14px; }
+    .offline-signal {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: var(--warning);
+      background: var(--warning-soft);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    @keyframes loading-hop {
+      0%, 100% { transform: translateY(0) rotate(-2deg) scale(1); }
+      50% { transform: translateY(-7px) rotate(2deg) scale(1.03); }
+    }
+    @keyframes loading-orbit { to { transform: rotate(360deg); } }
+    @keyframes loading-dot {
+      0%, 100% { transform: translateY(0) scale(.85); opacity: .4; }
+      50% { transform: translateY(-5px) scale(1.15); opacity: 1; }
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .modal-actions-split { justify-content: space-between; }
+
+    .alternative-search-actions {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .alternative-search-actions .btn {
+      justify-content: flex-start;
+      text-align: left;
+      padding: 12px;
+      gap: 12px;
+      white-space: normal;
+      height: auto;
+      align-items: flex-start;
+      width: 100%;
+    }
+    .alternative-search-actions .btn > span {
+      display: block;
+      min-width: 0;
+      flex: 1;
+    }
+    .alternative-search-actions .btn > svg {
+      margin-top: 2px;
+    }
+    .alternative-search-actions strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .alternative-search-actions span span {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+
+    .not-found-dialog {
+      text-align: center;
+      border-top: 5px solid #f59e0b;
+    }
+    .not-found-dialog .cute-face { margin: 0 auto 14px; }
+    .not-found-dialog .alternative-search-actions { text-align: left; }
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 22px;
+    }
+    @media (max-width: 420px) {
+      .modal { padding: 20px 16px; border-radius: 16px; }
+      .modal h2 { font-size: 17px; }
+      .modal-subtitle { font-size: 13px; }
+      .alternative-search-actions .btn { padding: 11px; }
+      .alternative-search-actions strong { font-size: 13px; }
+      .alternative-search-actions span span { font-size: 11px; }
+      .claim-actions { width: 100%; }
+      .claim-actions .btn { flex: 1 1 120px; min-width: 0; }
+      .actions-right .btn span { font-size: 12px; }
+    }
+
+    /* Claim modal */
+    .claim-modal { text-align: center; }
+    .claim-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .claim-banner-icon { font-size: 16px; }
+    .claim-body .modal-icon { margin: 0 auto 14px; }
+    .claim-question-icon { background: var(--primary-soft); color: var(--primary); }
+    .claim-actions { justify-content: center; }
+    .claim-actions .btn { min-width: 130px; }
+
+
+    /* Claim documentation camera, campus selection, and upload progress */
+    .camera-modal,
+    .campus-photo-modal,
+    .photo-upload-modal {
+      width: min(430px, 100%);
+      text-align: center;
+      border-radius: 22px;
+      overflow: hidden;
+    }
+    .camera-modal {
+      padding: 20px;
+      background:
+        radial-gradient(circle at 85% 5%, rgba(34,197,94,.12), transparent 34%),
+        var(--surface);
+    }
+    .camera-modal h2,
+    .campus-photo-modal h2,
+    .photo-upload-modal h2 { margin-bottom: 6px; }
+    .claim-photo-instruction {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 14px 0;
+      padding: 11px 12px;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      background: var(--primary-soft);
+      color: #166534;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .claim-photo-instruction span:first-child {
+      flex: 0 0 auto;
+      font-size: 19px;
+      line-height: 1.2;
+    }
+    .claim-camera-frame {
+      position: relative;
+      width: min(78vw, 300px);
+      aspect-ratio: 3 / 4;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 3px solid #dcfce7;
+      border-radius: 22px;
+      background: #0f172a;
+      box-shadow: 0 16px 35px rgba(15,23,42,.2);
+    }
+    .claim-camera-frame video,
+    .claim-camera-frame img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+    .claim-camera-frame img { background: #111827; }
+    .claim-camera-placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      color: rgba(255,255,255,.84);
+      font-size: 13px;
+      background:
+        radial-gradient(circle at center, rgba(34,197,94,.2), transparent 55%),
+        #0f172a;
+    }
+    .claim-camera-placeholder span {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 34px;
+    }
+    .camera-status {
+      min-height: 20px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .camera-actions {
+      justify-content: center;
+      margin-top: 12px;
+    }
+    .camera-actions .btn { min-width: 118px; }
+    .campus-photo-modal {
+      width: min(720px, 100%);
+      max-width: 720px;
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: 24px 20px 20px;
+      border-top: 5px solid var(--primary);
+      background:
+        radial-gradient(circle at 15% 5%, rgba(34,197,94,.11), transparent 35%),
+        var(--surface);
+    }
+    .campus-photo-icon {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 12px;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      background: var(--primary-soft);
+      font-size: 32px;
+      animation: cute-bob 1.8s ease-in-out infinite;
+    }
+    .campus-photo-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .campus-photo-group-title {
+      grid-column: 1 / -1;
+      margin-top: 4px;
+      padding: 8px 2px 2px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .campus-photo-group-title:first-child { margin-top: 0; }
+    .campus-photo-option {
+      min-height: 88px;
+      padding: 14px 10px;
+      flex-direction: column;
+      border-color: #bbf7d0;
+      background: #f7fff9;
+      color: #166534;
+      white-space: normal;
+    }
+    .campus-photo-option strong {
+      display: block;
+      font-size: 14px;
+    }
+    .campus-photo-option span {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .photo-upload-modal {
+      padding: 25px 22px 22px;
+      border-top: 5px solid var(--primary);
+    }
+    .photo-upload-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 13px;
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      background: linear-gradient(145deg, var(--primary-soft), #dcfce7);
+      box-shadow: 0 12px 25px rgba(22,163,74,.15);
+      font-size: 34px;
+      animation: loading-hop 1.05s ease-in-out infinite;
+    }
+    .photo-progress-track {
+      width: 100%;
+      height: 14px;
+      margin-top: 18px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e5e7eb;
+      box-shadow: inset 0 1px 3px rgba(15,23,42,.12);
+    }
+    .photo-progress-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #16a34a, #4ade80);
+      transition: width .25s ease;
+    }
+    .photo-progress-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .photo-progress-percent {
+      color: var(--primary);
+      font-weight: 800;
+    }
+    @media (max-width: 420px) {
+      .camera-modal { padding: 16px 12px; }
+      .claim-camera-frame { width: min(80vw, 280px); border-radius: 18px; }
+      .camera-actions .btn { flex: 1 1 120px; min-width: 0; }
+      .campus-photo-options { grid-template-columns: 1fr; }
+      .campus-photo-option { min-height: 66px; flex-direction: row; }
+    }
+
+    /* QR modal */
+    .qr-modal { text-align: center; }
+    .qr-modal .modal-icon { margin: 0 auto 14px; }
+    .qr-box {
+      padding: 16px;
+      background: var(--surface-alt);
+      border-radius: var(--radius-sm);
+      display: inline-block;
+      margin: 8px 0;
+    }
+    .qr-box canvas, .qr-box img { display: block; max-width: 100%; height: auto; }
+    .qr-link-wrap { margin-top: 8px; }
+    .qr-form-link {
+      font-size: 13px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      word-break: break-all;
+    }
+    .qr-form-link:hover { text-decoration: underline; }
+
+
+    /* Keep the single-page book modal independent from standard alert dialogs. */
+    .modal.book-modal {
+      width: min(760px, 100%);
+      max-width: 760px;
+      padding: 0;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #f5ead0;
+      display: flex;
+      flex-direction: column;
+    }
+    .book-modal-header, .book-toolbar, .book-footer { flex: 0 0 auto; }
+    .modal.book-modal .book-shell {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+    @media (max-width: 760px) {
+      .modal.book-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: 96vh;
+        border-radius: 16px;
+      }
+    }
+
+    .loading-dots::after {
+      content: '';
+      display: inline-block;
+      width: 1em;
+      text-align: left;
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0% { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <div class="topbar">
+      <div class="topbar-mark">RSU</div>
+      <div>
+        <div class="topbar-title">Alumni Yearbook</div>
+        <div class="topbar-sub">Claim Verification</div>
+      </div>
+    </div>
+
+    <div class="layout-grid">
+      <section class="main-column">
+        <section class="card lookup-card">
+          <div class="lookup-head">
+            <span class="eyebrow">Lookup</span>
+            <h1>Find an alumni record</h1>
+            <p>Enter the first name, then the last name to verify a yearbook claim.</p>
+          </div>
+
+          <form id="lookupForm" novalidate>
+            <div class="grid grid-2">
+              <label class="field" id="firstNameField">
+                <span class="field-heading">
+                  <span class="field-label-wrap"><span class="step-badge">1</span><span>First name</span></span>
+                  <span class="field-helper">Type this first</span>
+                </span>
+                <input type="text" id="firstName" placeholder="e.g., Juan Paolo" autocomplete="given-name" inputmode="text" enterkeyhint="next" autofocus />
+              </label>
+
+              <label class="field is-locked" id="lastNameField">
+                <span class="field-heading">
+                  <span class="field-label-wrap"><span class="step-badge">2</span><span>Last name</span></span>
+                  <span class="field-helper" id="lastNameHelper">Available after first name</span>
+                </span>
+                <input type="text" id="lastName" placeholder="e.g., Dela Cruz Jr." autocomplete="family-name" inputmode="text" enterkeyhint="search" disabled />
+              </label>
+            </div>
+
+            <div id="statusMessage" class="status" aria-live="polite"></div>
+
+            <div class="action-row">
+              <div class="actions-left">
+                <button type="submit" class="btn btn-primary" id="checkBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                  <span>Search</span>
+                </button>
+                <button type="reset" class="btn btn-ghost" id="clearBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  <span>Clear</span>
+                </button>
+              </div>
+              <div class="actions-right">
+                <button type="button" class="btn btn-secondary" id="showQrBtn" aria-label="Show QR code for Google Form">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3"/><path d="M21 14v3"/><path d="M14 21h3"/><path d="M21 21v.01"/></svg>
+                  <span>QR</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="copyLinkBtn" aria-label="Copy Google Form link">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <span>Copy link</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="shareLinkBtn" aria-label="Share Google Form link">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  <span>Share</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="card results-card is-hidden" id="resultsSection">
+          <div class="results-head">
+            <div class="results-title-wrap">
+              <h2 id="resultsTitle">Matched alumni record</h2>
+              <p class="results-context" id="resultsContext">Showing the closest matching record.</p>
+            </div>
+            <span class="result-count" id="resultCountBadge">0 result</span>
+          </div>
+
+          <div class="table-wrap">
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>First</th>
+                  <th>Middle</th>
+                  <th>Last</th>
+                  <th>Program</th>
+                  <th>Campus</th>
+                  <th>Batch</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <aside class="side-column">
+        <section class="card logbook-card">
+          <div class="logbook-launcher">
+            <div class="logbook-launcher-top">
+              <div class="logbook-book-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M8 6h8"/><path d="M8 10h6"/></svg>
+              </div>
+              <div>
+                <h2>Claimed Alumni Logbook</h2>
+                <p>Open the digital book to review every claimed yearbook, with the latest claim listed first.</p>
+              </div>
+            </div>
+            <div class="logbook-launcher-actions">
+              <button type="button" class="btn btn-book" id="viewLogbookBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <span>View Logbook</span>
+              </button>
+              <span class="result-count" id="logbookCountBadge">0 record</span>
+              <span class="logbook-updated" id="logbookLastUpdated">Not loaded yet</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="notFoundModal" aria-hidden="true" inert>
+    <div class="modal not-found-dialog" role="dialog" aria-modal="true" aria-labelledby="notFoundTitle" aria-describedby="notFoundMessage">
+      <button class="modal-close" id="closeNotFoundModalBtn" aria-label="Close">×</button>
+      <div class="modal-icon modal-icon-warning cute-face" aria-hidden="true">🔎</div>
+      <h2 id="notFoundTitle">No exact match yet</h2>
+      <p class="modal-subtitle" id="notFoundMessage">We could not find a record using both names. Try a broader search below.</p>
+
+      <div class="alternative-search-actions">
+        <button type="button" class="btn btn-secondary" id="searchLastOnlyBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span><strong id="searchLastOnlyLabel">Try last name only</strong><span>No exact match was found. Search records using the last name only.</span></span>
+        </button>
+        <button type="button" class="btn btn-secondary" id="searchFirstOnlyBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span><strong id="searchFirstOnlyLabel">Try first name only</strong><span>No exact match was found. Search records using the first name only.</span></span>
+        </button>
+        <button type="button" class="btn btn-secondary" id="notFoundQrBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3"/><path d="M21 14v3"/><path d="M14 21h3"/><path d="M21 21v.01"/></svg>
+          <span><strong>Scan QR to answer the form</strong><span>Not on the list? Fill out the Google Form to be added.</span></span>
+        </button>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="dismissNotFoundModalBtn">Edit the name</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="feedbackModal" aria-hidden="true" inert>
+    <div class="modal feedback-modal" data-feedback-type="success" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackMessage">
+      <button class="modal-close" id="closeFeedbackModalBtn" aria-label="Close">×</button>
+      <div class="modal-icon cute-face modal-icon-success" id="feedbackIcon" aria-hidden="true">🎉</div>
+      <h2 id="feedbackTitle">Success</h2>
+      <p class="modal-subtitle" id="feedbackMessage"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary" id="dismissFeedbackModalBtn">Okay</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="loadingModal" aria-hidden="true" inert>
+    <div class="modal mini-status-modal" id="loadingDialog" role="dialog" aria-modal="true" aria-labelledby="loadingTitle" aria-describedby="loadingMessage" tabindex="-1">
+      <div class="loading-mascot-wrap" aria-hidden="true">
+        <div class="loading-orbit"></div>
+        <div class="loading-mascot" id="loadingEmoji">🔎</div>
+      </div>
+      <h2 id="loadingTitle">Searching records</h2>
+      <p class="modal-subtitle" id="loadingMessage">Please wait while we check the alumni list.</p>
+      <div class="loading-dots-row" aria-hidden="true"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="offlineModal" aria-hidden="true" inert>
+    <div class="modal offline-modal" role="dialog" aria-modal="true" aria-labelledby="offlineTitle" aria-describedby="offlineMessage">
+      <button class="modal-close" id="closeOfflineModalBtn" aria-label="Close">×</button>
+      <div class="modal-icon modal-icon-warning cute-face" aria-hidden="true">📡</div>
+      <h2 id="offlineTitle">Oops, you’re offline</h2>
+      <p class="modal-subtitle" id="offlineMessage">Please check your internet connection. Your saved logbook can still be viewed from this device.</p>
+      <div class="offline-signal" aria-hidden="true">● NO INTERNET CONNECTION</div>
+      <div class="modal-actions" style="justify-content:center;">
+        <button type="button" class="btn btn-secondary" id="dismissOfflineModalBtn">Use saved data</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="claimModal" aria-hidden="true" inert>
+    <div class="modal claim-modal" role="dialog" aria-modal="true" aria-labelledby="claimModalTitle">
+      <div class="claim-banner">
+        <span class="claim-banner-icon">✓</span>
+        <span class="claim-banner-text">Kumpirmasyon ng pag-claim</span>
+      </div>
+
+      <div class="claim-body">
+        <div class="modal-icon claim-question-icon cute-face">📚</div>
+        <h2 id="claimModalTitle">Ike-claim ba ng alumnus/alumna na ito ang yearbook ngayong araw?</h2>
+        <p class="modal-subtitle claim-subtitle" id="claimModalSubtitle">Pindutin ang OO para maitala agad sa logbook.</p>
+
+        <div class="modal-actions claim-actions">
+          <button type="button" class="btn btn-primary btn-yes" id="claimYesBtn">OO, I-RECORD</button>
+          <button type="button" class="btn btn-ghost btn-no" id="claimNoBtn">HINDI</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal-backdrop" id="claimCameraModal" aria-hidden="true" inert>
+    <div class="modal camera-modal" role="dialog" aria-modal="true" aria-labelledby="claimCameraTitle">
+      <button class="modal-close" id="cancelClaimCameraBtn" aria-label="Close documentation camera">×</button>
+      <h2 id="claimCameraTitle">Claim Documentation</h2>
+      <p class="modal-subtitle">Take one clear portrait photo before completing the transaction.</p>
+
+      <div class="claim-photo-instruction">
+        <span aria-hidden="true">📚</span>
+        <div>The claimant must be clearly visible while holding the claimed yearbook.</div>
+      </div>
+
+      <div class="claim-camera-frame">
+        <video id="claimCameraVideo" autoplay muted playsinline></video>
+        <img id="claimPhotoPreview" alt="Captured yearbook claim documentation preview" hidden />
+        <div class="claim-camera-placeholder" id="claimCameraPlaceholder">
+          <div><span aria-hidden="true">📷</span>Preparing the portrait camera…</div>
+        </div>
+      </div>
+
+      <p class="camera-status" id="claimCameraStatus" aria-live="polite">Please allow camera access when prompted.</p>
+
+      <div class="modal-actions camera-actions">
+        <button type="button" class="btn btn-primary" id="captureClaimPhotoBtn">Take Photo</button>
+        <button type="button" class="btn btn-secondary" id="fallbackClaimPhotoBtn" hidden>Open Phone Camera</button>
+        <button type="button" class="btn btn-secondary" id="recaptureClaimPhotoBtn" hidden>Recapture</button>
+        <button type="button" class="btn btn-primary" id="finishClaimPhotoBtn" hidden>Finish</button>
+      </div>
+
+      <input type="file" id="claimPhotoFallbackInput" accept="image/*" capture="environment" hidden />
+      <canvas id="claimPhotoCanvas" width="1200" height="1600" hidden></canvas>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="claimPhotoCampusModal" aria-hidden="true" inert>
+    <div class="modal campus-photo-modal" role="dialog" aria-modal="true" aria-labelledby="claimPhotoCampusTitle">
+      <button class="modal-close" id="cancelClaimPhotoCampusBtn" aria-label="Close location selection">×</button>
+      <div class="campus-photo-icon" aria-hidden="true">🏫</div>
+      <h2 id="claimPhotoCampusTitle">Select the Claiming Campus or College</h2>
+      <p class="modal-subtitle">The photo will be uploaded automatically to the matching folder inside your configured Google Drive parent folder.</p>
+
+      <div class="campus-photo-options">
+        <div class="campus-photo-group-title">Campuses</div>
+
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="Cajidiocan">
+          <span aria-hidden="true">📍</span><strong>Cajidiocan</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="San Fernando">
+          <span aria-hidden="true">📍</span><strong>San Fernando</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="Romblon">
+          <span aria-hidden="true">📍</span><strong>Romblon</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="Santa Fe">
+          <span aria-hidden="true">📍</span><strong>Santa Fe</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="Santa Maria">
+          <span aria-hidden="true">📍</span><strong>Santa Maria</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="San Andres">
+          <span aria-hidden="true">📍</span><strong>San Andres</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="San Agustin">
+          <span aria-hidden="true">📍</span><strong>San Agustin</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="Calatrava">
+          <span aria-hidden="true">📍</span><strong>Calatrava</strong>
+        </button>
+
+        <div class="campus-photo-group-title">Colleges</div>
+
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="CAFES">
+          <span aria-hidden="true">🎓</span><strong>CAFES</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="College of Education">
+          <span aria-hidden="true">🎓</span><strong>College of Education</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="College of Engineering">
+          <span aria-hidden="true">🎓</span><strong>College of Engineering</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="College of Arts and Sciences">
+          <span aria-hidden="true">🎓</span><strong>College of Arts and Sciences</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="College of Computing Multimedia And Digital Innovation">
+          <span aria-hidden="true">🎓</span><strong>College of Computing Multimedia And Digital Innovation</strong>
+        </button>
+        <button type="button" class="btn campus-photo-option" data-claim-photo-campus="College of Business and Accountancy">
+          <span aria-hidden="true">🎓</span><strong>College of Business and Accountancy</strong>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="claimPhotoUploadModal" aria-hidden="true" inert>
+    <div class="modal photo-upload-modal" role="dialog" aria-modal="true" aria-labelledby="claimPhotoUploadTitle">
+      <div class="photo-upload-icon" aria-hidden="true">☁️</div>
+      <h2 id="claimPhotoUploadTitle">Uploading Documentation</h2>
+      <p class="modal-subtitle" id="claimPhotoUploadMessage">Sending the portrait photo securely to Google Drive.</p>
+
+      <div class="photo-progress-track" aria-hidden="true">
+        <div class="photo-progress-bar" id="claimPhotoProgressBar"></div>
+      </div>
+      <div class="photo-progress-meta">
+        <span id="claimPhotoProgressStatus">Preparing upload…</span>
+        <span class="photo-progress-percent" id="claimPhotoProgressPercent">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="logbookModal" aria-hidden="true" inert>
+    <div class="modal book-modal" role="dialog" aria-modal="true" aria-labelledby="logbookModalTitle">
+      <div class="book-modal-header">
+        <div>
+          <h2 id="logbookModalTitle">Claimed Alumni Logbook</h2>
+          <p>Official yearbook claiming entries</p>
+        </div>
+        <button class="modal-close" id="closeLogbookModalBtn" aria-label="Close logbook">×</button>
+      </div>
+
+      <div class="book-toolbar">
+        <div class="book-toolbar-copy">
+          <strong>All claimed records</strong>
+          <span>Saved on this device. Refresh manually or record a new claim to fetch updates.</span>
+        </div>
+        <button type="button" class="btn btn-secondary btn-small" id="refreshLogbookBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"/></svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <div class="book-shell" id="bookShell">
+        <div class="book-stage" id="bookStage">
+          <section class="book-page book-page-single" aria-label="Claimed alumni logbook page">
+            <div class="book-page-scroll" id="bookCurrentPage" tabindex="0" aria-label="Scrollable logbook entries"></div>
+            <span class="book-page-number" id="bookCurrentPageNumber">1</span>
+          </section>
+
+          <div class="book-turn-sheet" id="bookTurnSheet" aria-hidden="true">
+            <div class="book-turn-face book-turn-front" id="bookTurnFront"></div>
+            <div class="book-turn-face book-turn-back" id="bookTurnBack"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="book-footer">
+        <span class="book-page-status" id="bookPageStatus">No entries loaded</span>
+        <div class="book-pagination">
+          <button type="button" class="btn btn-secondary btn-small" id="previousBookPageBtn" aria-label="Previous logbook page"><span aria-hidden="true">←</span> <span class="book-nav-wide">Previous Page</span><span class="book-nav-short">Prev</span></button>
+          <button type="button" class="btn btn-secondary btn-small" id="nextBookPageBtn" aria-label="Next logbook page"><span class="book-nav-wide">Next Page</span><span class="book-nav-short">Next</span> <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="qrModal" aria-hidden="true" inert>
+    <div class="modal qr-modal" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+      <button class="modal-close" id="closeQrModalBtn" aria-label="Close">×</button>
+      <h2 id="qrModalTitle">Scan to answer the form</h2>
+      <p class="modal-subtitle">Use your phone camera or QR scanner.</p>
+      <div class="qr-box">
+        <img id="qrImage" alt="QR code for the alumni Google Form" width="320" height="320" />
+      </div>
+      <div class="qr-link-wrap">
+        <a id="qrFormLink" class="qr-form-link" href="https://docs.google.com/forms/d/e/1FAIpQLSdIcr7-lC4Lm5zkYiRm_56rlV3vDbx5izsxV-dSuQc1einRRg/viewform" target="_blank" rel="noopener noreferrer">Open Google Form</a>
+      </div>
+      <div class="modal-actions" style="justify-content: center;">
+        <button type="button" class="btn btn-secondary" id="qrCopyBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Copy link</span>
+        </button>
+        <button type="button" class="btn btn-secondary" id="qrShareBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span>Share</span>
+        </button>
+        <button type="button" class="btn btn-ghost" id="closeQrBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      // GitHub Pages uses HTTPS, which allows navigator.mediaDevices.getUserMedia.
+      // Keep the deployed Apps Script /exec URL below so claims and photos can be saved.
+      appsScriptUrl: 'https://script.google.com/macros/s/AKfycbyNBLkp7DzRADOXPi8r2ujW3JIQQnYpnyVtlkyoJFwQmR3B_z--QhSgjh7HZHR3Askffg/exec',
+      googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdIcr7-lC4Lm5zkYiRm_56rlV3vDbx5izsxV-dSuQc1einRRg/viewform',
+      embeddedQrForUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdIcr7-lC4Lm5zkYiRm_56rlV3vDbx5izsxV-dSuQc1einRRg/viewform',
+      embeddedQrDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAggAAAIIAQAAAAAjhyvOAAAFOElEQVR4nO2d0Y6bOwiEZ472/V95egEDzh6pN+uq1CKr3SZ/mk+2QjAM2KHww9t/PwUsYQlLWMISlrCEf4zwBQCM+wIICAAFgBARv4g7AsX4t14xYhZLuEX4AhDvKwiGSYhKu4DCIACBAqV80q+4MoYlzCGEPaRfUHgGe4V0EGJaRF7h8YorY1jCVAIJCAKgXB4AQgozICVK+h3h52NYwt8kfP3vCsXwE+kmIphAXlI9vDeGJcwhpD3Ee0zFT8QQiNAR9PWIL9IgyiomzGIJtwhhD/y8yPQLFD/dgepav2LCLJZwi/DxdtMhZBgEcC4dfv7+GJYwh1D2EEmkg4dOMYB4wulGpR5+7YRZLOEWwcoTcJqEFYYwD0tT7TjaJmbMYglXCQJIZCopS5KVX6ShZCKKlCp4En4+hiWMIFS+KdaHPj/4atU6rolKz0GL21fGsIRhhDAEQoAUWlTaQjwITQqU00xp84s3CdarFQFiRpNdwRD16SVc4bg4hiXMIXwBWbc4nAR8sVYFpSbRCefWL54kOH6QC1lINyHnFgLFWirSKjKi3Hr3owQSpBcNMfON8A0E40/GDGEo2vziRULFjbASackhOl+inNELikqKwOoPDxJcz4pPP608Qmo3wNIc0P1SlWBMmMUSbhHsH1Q1KrVmbd+AQ69EB5UbPzxLUMWM4QuYviEihwgsQpOKFJTVMzdpFkv4MeHUINMP0OWrCimO2pYqzNz6xYsE6w/dNsm6B4QY1fVvxEUcjbYjZrGEuwQiVohcENI4LEC0TFVFC4Hc9eJdAkt1cBohpAoRD/Im/6VAbr/9c4Rqlk1BoTpmj544FzXV6eixd2fCLJZwl0Ckb8iwkqRrXHURRw9t/u+rY1jCBEL328sm4VInXNDqjKPzTtSuvQmzWMJdwtkuF3ejzh2rAiN67F6pjiovjmEJYwh0HHk0xUXzQ5mKqkeOnZ6uf3iOUPt5acGB1q5Lh0Q8U7ULtW51ZQxLGEdI/8CwiNQahOyf8zatsptwJVr/8CZBdKusP/mpP8SNXkrO3TteLubMYgnX6hfVD/mxFhxHfxzqQ27rLduYMIsl3CJ0/8Nnz5w6YHB6EYolui6+8cOrBIa04JomWP2zFp5ScZCbZVDq1JxZLOGeXu1ee6A7X6olrnrnjueta4+YxRJuEeq8oEOV7Eap9BhH75zjh9qtMWIWS7hF8PlyZ3t9JZ8dUNa233jA3d/9MsFvfm3slssY1fBA0vv5KKqWkkGzWMI1vRpSHShYK4RzUVm9LjGqm+bujWEJswiEO2hplbpOG0yhMnf2Io+h2/rF04QsZ6c3EBURJt1cm92UzK3/tYNv1iyWcIHwvZk2N+fQp4mR1RiTS4V7au+NYQmDCAIcTaIbHSrFBLz1O8xGUvVWDprFEm7pUc4wVZklfBRlPcvDOixE3BnDEoYRqIwbSebObnfGZELhZlvkeqIKJ+fMYgn36hcgfZhYlC7ivOq8mwXwNpGtX7xKODsafPqol4tzj57PnzxOpVx7eJBwnGeen33Wnhs3OgDo40h7d9/Wu18lMG59VbYAb+Wr9LIyz9qMMWYWS7i1XtSJMMgTi+s4OfsHnUlGVsYzw5gwiyXcInx8Pw6As8shFgr0hr2qWXTZa8YslvBHCNVEWSHE536MaIKQs83dz/s6IU6EUUrWPpw0BWx34tOVDK1/eJWQ34rFSioO28gCuOOJ7LbdePJJwrfvx4lCRrQ4lIRdwaMYGzW8W2PjyecI378d7W+MYQlLWMISlrCEJfxbhF9pYO4gprGjggAAAABJRU5ErkJggg==',
+      requestTimeoutMs: 20000,
+      logbookCacheKey: 'rsu-yearbook-claimed-logbook-v2',
+      logbookCacheVersion: 2,
+      claimPhotoWidth: 1200,
+      claimPhotoHeight: 1600,
+      claimPhotoQuality: 0.88,
+      claimPhotoStatusTimeoutMs: 90000,
+    };
+
+    const CAMPUS_ABBREVIATIONS = {
+      'collegeofartsandsciences': 'CAS',
+      'cas': 'CAS',
+      'collegeofeducation': 'CED',
+      'ced': 'CED',
+      'collegeofbusinessandaccountancy': 'CBA',
+      'cba': 'CBA',
+      'collegeofengineeringandtechnology': 'CET',
+      'cet': 'CET',
+      'instituteofinformationtechnologycollegeofcomputingmultimediaartsanddigitalinnovation': 'IIT/CCMADI',
+      'instituteofinformationtechnologyccmadi': 'IIT/CCMADI',
+      'instituteofinformationtechnology': 'IIT/CCMADI',
+      'collegeofcomputingmultimediaartsanddigitalinnovation': 'IIT/CCMADI',
+      'iitccmadi': 'IIT/CCMADI',
+      'iit': 'IIT/CCMADI',
+      'ccmadi': 'IIT/CCMADI',
+      'instituteofcriminaljusticeeducation': 'ICJE',
+      'icije': 'ICJE',
+      'icje': 'ICJE',
+      'collegeofagricultureforestryandenvironmentalscience': 'CAFES',
+      'cafes': 'CAFES',
+      'sanandrescampus': 'San Andres',
+      'sanandres': 'San Andres',
+      'calatravacampus': 'Calatrava',
+      'calatrava': 'Calatrava',
+      'sanagustincampus': 'San Agustin',
+      'sanagustin': 'San Agustin',
+      'santamariacampus': 'Santa Maria',
+      'santamaria': 'Santa Maria',
+      'santafecampus': 'Santa Fe',
+      'santafe': 'Santa Fe',
+      'rombloncampus': 'Romblon',
+      'romblon': 'Romblon',
+      'sanfernandocampus': 'San Fernando',
+      'sanfernando': 'San Fernando',
+      'cajidiocancampus': 'Cajidiocan',
+      'cajidiocan': 'Cajidiocan'
+    };
+
+    const form = document.getElementById('lookupForm');
+    const firstNameInput = document.getElementById('firstName');
+    const lastNameInput = document.getElementById('lastName');
+    const lastNameField = document.getElementById('lastNameField');
+    const lastNameHelper = document.getElementById('lastNameHelper');
+    const statusMessage = document.getElementById('statusMessage');
+    const checkBtn = document.getElementById('checkBtn');
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsBody = document.getElementById('resultsBody');
+    const resultCountBadge = document.getElementById('resultCountBadge');
+    const resultsTitle = document.getElementById('resultsTitle');
+    const resultsContext = document.getElementById('resultsContext');
+
+    const notFoundModal = document.getElementById('notFoundModal');
+    const closeNotFoundModalBtn = document.getElementById('closeNotFoundModalBtn');
+    const dismissNotFoundModalBtn = document.getElementById('dismissNotFoundModalBtn');
+    const notFoundMessage = document.getElementById('notFoundMessage');
+    const searchFirstOnlyBtn = document.getElementById('searchFirstOnlyBtn');
+    const searchLastOnlyBtn = document.getElementById('searchLastOnlyBtn');
+    const searchFirstOnlyLabel = document.getElementById('searchFirstOnlyLabel');
+    const searchLastOnlyLabel = document.getElementById('searchLastOnlyLabel');
+
+    const feedbackModal = document.getElementById('feedbackModal');
+    const closeFeedbackModalBtn = document.getElementById('closeFeedbackModalBtn');
+    const dismissFeedbackModalBtn = document.getElementById('dismissFeedbackModalBtn');
+    const feedbackIcon = document.getElementById('feedbackIcon');
+    const feedbackTitle = document.getElementById('feedbackTitle');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+
+    const loadingModal = document.getElementById('loadingModal');
+    const loadingDialog = document.getElementById('loadingDialog');
+    const loadingEmoji = document.getElementById('loadingEmoji');
+    const loadingTitle = document.getElementById('loadingTitle');
+    const loadingMessage = document.getElementById('loadingMessage');
+
+    const offlineModal = document.getElementById('offlineModal');
+    const closeOfflineModalBtn = document.getElementById('closeOfflineModalBtn');
+    const dismissOfflineModalBtn = document.getElementById('dismissOfflineModalBtn');
+    const offlineMessage = document.getElementById('offlineMessage');
+
+    const claimModal = document.getElementById('claimModal');
+    const claimNoBtn = document.getElementById('claimNoBtn');
+    const claimYesBtn = document.getElementById('claimYesBtn');
+    const claimModalSubtitle = document.getElementById('claimModalSubtitle');
+
+    const claimCameraModal = document.getElementById('claimCameraModal');
+    const cancelClaimCameraBtn = document.getElementById('cancelClaimCameraBtn');
+    const claimCameraVideo = document.getElementById('claimCameraVideo');
+    const claimPhotoPreview = document.getElementById('claimPhotoPreview');
+    const claimCameraPlaceholder = document.getElementById('claimCameraPlaceholder');
+    const claimCameraStatus = document.getElementById('claimCameraStatus');
+    const captureClaimPhotoBtn = document.getElementById('captureClaimPhotoBtn');
+    const fallbackClaimPhotoBtn = document.getElementById('fallbackClaimPhotoBtn');
+    const recaptureClaimPhotoBtn = document.getElementById('recaptureClaimPhotoBtn');
+    const finishClaimPhotoBtn = document.getElementById('finishClaimPhotoBtn');
+    const claimPhotoFallbackInput = document.getElementById('claimPhotoFallbackInput');
+    const claimPhotoCanvas = document.getElementById('claimPhotoCanvas');
+
+    const claimPhotoCampusModal = document.getElementById('claimPhotoCampusModal');
+    const cancelClaimPhotoCampusBtn = document.getElementById('cancelClaimPhotoCampusBtn');
+    const claimPhotoCampusButtons = document.querySelectorAll('[data-claim-photo-campus]');
+
+    const claimPhotoUploadModal = document.getElementById('claimPhotoUploadModal');
+    const claimPhotoUploadMessage = document.getElementById('claimPhotoUploadMessage');
+    const claimPhotoProgressBar = document.getElementById('claimPhotoProgressBar');
+    const claimPhotoProgressStatus = document.getElementById('claimPhotoProgressStatus');
+    const claimPhotoProgressPercent = document.getElementById('claimPhotoProgressPercent');
+
+    const showQrBtn = document.getElementById('showQrBtn');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const qrModal = document.getElementById('qrModal');
+    const closeQrModalBtn = document.getElementById('closeQrModalBtn');
+    const closeQrBtn = document.getElementById('closeQrBtn');
+    const qrImage = document.getElementById('qrImage');
+    const qrFormLink = document.getElementById('qrFormLink');
+
+    const viewLogbookBtn = document.getElementById('viewLogbookBtn');
+    const logbookModal = document.getElementById('logbookModal');
+    const closeLogbookModalBtn = document.getElementById('closeLogbookModalBtn');
+    const logbookCountBadge = document.getElementById('logbookCountBadge');
+    const logbookLastUpdated = document.getElementById('logbookLastUpdated');
+    const refreshLogbookBtn = document.getElementById('refreshLogbookBtn');
+    const bookShell = document.getElementById('bookShell');
+    const bookStage = document.getElementById('bookStage');
+    const bookCurrentPage = document.getElementById('bookCurrentPage');
+    const bookCurrentPageNumber = document.getElementById('bookCurrentPageNumber');
+    const bookTurnSheet = document.getElementById('bookTurnSheet');
+    const bookTurnFront = document.getElementById('bookTurnFront');
+    const bookTurnBack = document.getElementById('bookTurnBack');
+    const bookPageStatus = document.getElementById('bookPageStatus');
+    const previousBookPageBtn = document.getElementById('previousBookPageBtn');
+    const nextBookPageBtn = document.getElementById('nextBookPageBtn');
+
+    let currentMatchedRows = [];
+    let currentResultRecords = [];
+    let currentSearchMode = 'full';
+    let isClaimSubmitting = false;
+    let isLogbookLoading = false;
+    let currentSelectedRecord = null;
+    let pendingClaimPhotoRecord = null;
+    let claimCameraStream = null;
+    let capturedClaimPhotoDataUrl = '';
+    let isClaimPhotoUploading = false;
+    let currentLogbookRecords = [];
+    let currentBookSpread = 0;
+    let logbookRequestSequence = 0;
+    let lookupRequestSequence = 0;
+    let isLookupLoading = false;
+    let isBookFlipping = false;
+    let hasLogbookCache = false;
+    let fallbackSearchToken = '';
+    let fallbackSearchNameKey = '';
+    const attemptedPartialModes = new Set();
+    const modalReturnFocus = new WeakMap();
+    const BOOK_ENTRIES_PER_PAGE = 20;
+
+    form.addEventListener('submit', handleLookup);
+    form.addEventListener('reset', handleReset);
+    firstNameInput.addEventListener('input', syncNameFieldOrder);
+    firstNameInput.addEventListener('input', handleSearchInputMutation);
+    lastNameInput.addEventListener('input', handleSearchInputMutation);
+    firstNameInput.addEventListener('keydown', handleFirstNameEnter);
+    resultsBody.addEventListener('click', handleResultSelection);
+
+    closeNotFoundModalBtn.addEventListener('click', closeNotFoundModal);
+    dismissNotFoundModalBtn.addEventListener('click', () => {
+      closeNotFoundModal();
+      firstNameInput.focus();
+    });
+    searchFirstOnlyBtn.addEventListener('click', () => performLookup('first'));
+    searchLastOnlyBtn.addEventListener('click', () => performLookup('last'));
+
+    closeFeedbackModalBtn.addEventListener('click', closeFeedbackModal);
+    dismissFeedbackModalBtn.addEventListener('click', closeFeedbackModal);
+
+    closeOfflineModalBtn.addEventListener('click', closeOfflineModal);
+    dismissOfflineModalBtn.addEventListener('click', closeOfflineModal);
+
+    claimNoBtn.addEventListener('click', closeClaimModalByChoice);
+    claimYesBtn.addEventListener('click', handleClaimYes);
+
+    cancelClaimCameraBtn.addEventListener('click', cancelClaimPhotoDocumentation);
+    captureClaimPhotoBtn.addEventListener('click', captureClaimPhoto);
+    fallbackClaimPhotoBtn.addEventListener('click', () => claimPhotoFallbackInput.click());
+    claimPhotoFallbackInput.addEventListener('change', handleFallbackClaimPhoto);
+    recaptureClaimPhotoBtn.addEventListener('click', recaptureClaimPhoto);
+    finishClaimPhotoBtn.addEventListener('click', finishClaimPhoto);
+    cancelClaimPhotoCampusBtn.addEventListener('click', cancelClaimPhotoDocumentation);
+    claimPhotoCampusButtons.forEach((button) => {
+      button.addEventListener('click', () => uploadClaimPhoto(button.dataset.claimPhotoCampus));
+    });
+
+    showQrBtn.addEventListener('click', openQrModal);
+    copyLinkBtn.addEventListener('click', copyGoogleFormLink);
+    document.getElementById('shareLinkBtn').addEventListener('click', shareGoogleFormLink);
+    document.getElementById('notFoundQrBtn').addEventListener('click', () => {
+      closeNotFoundModal();
+      openQrModal();
+    });
+    document.getElementById('qrCopyBtn').addEventListener('click', copyGoogleFormLink);
+    document.getElementById('qrShareBtn').addEventListener('click', shareGoogleFormLink);
+    closeQrModalBtn.addEventListener('click', closeQrModal);
+    closeQrBtn.addEventListener('click', closeQrModal);
+
+    viewLogbookBtn.addEventListener('click', openLogbookModal);
+    closeLogbookModalBtn.addEventListener('click', closeLogbookModal);
+    previousBookPageBtn.addEventListener('click', () => changeBookSpread(-1));
+    nextBookPageBtn.addEventListener('click', () => changeBookSpread(1));
+
+    refreshLogbookBtn.addEventListener('click', async () => {
+      currentBookSpread = 0;
+      bookPageStatus.textContent = 'Refreshing all claimed records…';
+      await loadLogbookList({ force: true, showLoader: true, reason: 'manual' });
+    });
+
+    [notFoundModal, feedbackModal, offlineModal, logbookModal, qrModal].forEach((modal) => {
+      modal.addEventListener('click', (event) => {
+        if (event.target !== modal) return;
+        if (modal === notFoundModal) closeNotFoundModal();
+        if (modal === feedbackModal) closeFeedbackModal();
+        if (modal === offlineModal) closeOfflineModal();
+        if (modal === logbookModal) closeLogbookModal();
+        if (modal === qrModal) closeQrModal();
+      });
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (claimPhotoUploadModal.classList.contains('show')) return;
+      if (claimPhotoCampusModal.classList.contains('show')) return cancelClaimPhotoDocumentation();
+      if (claimCameraModal.classList.contains('show')) return cancelClaimPhotoDocumentation();
+      if (qrModal.classList.contains('show')) return closeQrModal();
+      if (logbookModal.classList.contains('show')) return closeLogbookModal();
+      if (offlineModal.classList.contains('show')) return closeOfflineModal();
+      if (feedbackModal.classList.contains('show')) return closeFeedbackModal();
+      if (notFoundModal.classList.contains('show')) return closeNotFoundModal();
+      if (claimModal.classList.contains('show') && !isClaimSubmitting) closeClaimModal();
+    });
+
+    window.addEventListener('load', () => {
+      if (window.location.protocol === 'file:') {
+        console.info(
+          'RSU Yearbook Lookup: local file mode detected. The page is self-contained, but using the included local-server launcher avoids browser file-origin restrictions.'
+        );
+      }
+      syncNameFieldOrder();
+      restoreLogbookCache();
+      if (!navigator.onLine) showOfflineModal('startup');
+      firstNameInput.focus({ preventScroll: true });
+    });
+
+    window.addEventListener('offline', () => {
+      hideLoadingModal();
+      showOfflineModal('connection-lost');
+    });
+
+    window.addEventListener('online', () => {
+      closeOfflineModal();
+      setStatus('Internet connection restored.', 'success');
+    });
+
+    function syncNameFieldOrder() {
+      const hasFirstName = Boolean(firstNameInput.value.trim());
+      lastNameInput.disabled = !hasFirstName;
+      lastNameField.classList.toggle('is-locked', !hasFirstName);
+      lastNameField.classList.toggle('is-ready', hasFirstName);
+      lastNameHelper.textContent = hasFirstName ? 'Now enter the last name' : 'Available after first name';
+
+      if (!hasFirstName) lastNameInput.value = '';
+    }
+
+    function handleSearchInputMutation() {
+      if (!fallbackSearchNameKey) return;
+      if (getFallbackNameKey(getRawInput()) !== fallbackSearchNameKey) {
+        invalidateFallbackSearch();
+      }
+    }
+
+    function getFallbackNameKey(input = getRawInput()) {
+      return `${normalizeName(input.firstName)}|${normalizeName(input.lastName)}`;
+    }
+
+    function invalidateFallbackSearch() {
+      fallbackSearchToken = '';
+      fallbackSearchNameKey = '';
+      attemptedPartialModes.clear();
+    }
+
+    function handleFirstNameEnter(event) {
+      if (event.key !== 'Enter') return;
+      if (!firstNameInput.value.trim()) return;
+      if (!lastNameInput.value.trim()) {
+        event.preventDefault();
+        lastNameInput.focus();
+      }
+    }
+
+    async function handleLookup(event) {
+      event.preventDefault();
+      await performLookup('full');
+    }
+
+    async function performLookup(mode = 'full') {
+      if (isLookupLoading) return;
+      const requestId = ++lookupRequestSequence;
+      closeNotFoundModal();
+      closeFeedbackModal();
+      closeClaimModal();
+
+      const input = getNormalizedInput();
+      const rawInput = getRawInput();
+
+      if (!CONFIG.appsScriptUrl.includes('/exec')) {
+        showFeedback('warning', 'Setup Needed', 'Please set the Apps Script Web App URL before searching.');
+        return;
+      }
+
+      if (!rawInput.firstName) {
+        hideResults();
+        showFeedback('warning', 'First Name First', 'Please type the first name before entering or searching the last name.');
+        firstNameInput.focus();
+        return;
+      }
+
+      if (mode === 'full' && !rawInput.lastName) {
+        hideResults();
+        showFeedback('warning', 'Last Name Needed', 'Enter the last name to run the accurate first-name and last-name search.');
+        lastNameInput.focus();
+        return;
+      }
+
+      if (mode === 'last' && !rawInput.lastName) {
+        showFeedback('warning', 'No Last Name', 'Type a last name before using the last-name-only search.');
+        lastNameInput.focus();
+        return;
+      }
+
+      if (mode !== 'full') {
+        const currentNameKey = getFallbackNameKey(rawInput);
+        if (!fallbackSearchToken || currentNameKey !== fallbackSearchNameKey) {
+          invalidateFallbackSearch();
+          showFeedback(
+            'warning',
+            'Search Both Names First',
+            'Run the First Name and Last Name search first. A one-name search is available only when the exact search finds no record.'
+          );
+          return;
+        }
+      }
+
+      if (!ensureOnline('search')) return;
+
+      currentSearchMode = mode;
+
+      try {
+        isLookupLoading = true;
+        setLookupLoadingState(true, mode);
+        showLoadingModal('search', mode);
+        setStatus(getSearchingMessage(mode), 'success');
+
+        const response = await jsonpRequest(CONFIG.appsScriptUrl, {
+          action: 'lookup',
+          searchMode: mode,
+          matchField: mode,
+          allowPartial: mode === 'full' ? 'false' : 'true',
+          fallbackToken: mode === 'full' ? '' : fallbackSearchToken,
+          // Keep both values populated. The Apps Script uses searchMode to
+          // decide which name field to match and validates the fallback token.
+          firstName: input.firstName,
+          lastName: input.lastName,
+        });
+
+        if (requestId !== lookupRequestSequence) return;
+        if (!response || response.ok !== true) {
+          throw new Error(response?.error || 'Unable to read the sheet records.');
+        }
+
+        if (mode === 'full') {
+          if (Array.isArray(response.results) && response.results.length === 0) {
+            fallbackSearchToken = String(response.fallbackToken || '');
+            fallbackSearchNameKey = getFallbackNameKey(rawInput);
+            attemptedPartialModes.clear();
+          } else {
+            invalidateFallbackSearch();
+          }
+        }
+
+        if (!Array.isArray(response.results) || response.results.length === 0) {
+          currentMatchedRows = [];
+          currentResultRecords = [];
+          hideResults();
+          setStatus('No matching record was found.', 'error');
+
+          hideLoadingModal();
+          if (mode === 'full') {
+            openNotFoundModal(rawInput, 'full');
+          } else if (mode === 'last') {
+            // Last-name-only failed → offer first-name-only next
+            openNotFoundModal(rawInput, 'last');
+          } else if (mode === 'first') {
+            // First-name-only also failed → offer QR to fill form
+            openNotFoundModal(rawInput, 'first');
+          }
+          return;
+        }
+
+        currentResultRecords = response.results;
+        currentMatchedRows = [];
+
+        renderResults(response.results, mode, rawInput);
+        setStatus(getFoundMessage(response.results.length, mode), 'success');
+
+        const onlyRowNumber = Number(response.results[0]?.rowNumber);
+        if (mode === 'full' && response.results.length === 1 && Number.isInteger(onlyRowNumber) && onlyRowNumber > 0) {
+          currentMatchedRows = [onlyRowNumber];
+          hideLoadingModal();
+          openClaimModal(1, mode, response.results[0]);
+        }
+      } catch (error) {
+        if (requestId !== lookupRequestSequence) return;
+        currentMatchedRows = [];
+        currentResultRecords = [];
+        hideResults();
+        const message = error.message || 'Something went wrong while searching.';
+        setStatus(message, 'error');
+        const fallbackProblem = /alternative-search|fallback|expired|search using both names again|run the first name and last name search first/i.test(message);
+        const needsBothNames = /provide both|first name and last name|both names/i.test(message);
+        if (fallbackProblem) invalidateFallbackSearch();
+        hideLoadingModal();
+        if (!navigator.onLine) {
+          showOfflineModal('search');
+        } else {
+          showFeedback(
+            'warning',
+            fallbackProblem ? 'Search Both Names Again' : needsBothNames ? 'Complete the Name' : 'Search Interrupted',
+            fallbackProblem
+              ? 'The one-name search session is no longer valid. Search using both First Name and Last Name again.'
+              : needsBothNames
+                ? 'Please enter both the first name and last name before searching.'
+                : message
+          );
+        }
+      } finally {
+        hideLoadingModal();
+        if (requestId === lookupRequestSequence) {
+          isLookupLoading = false;
+          setLookupLoadingState(false, mode);
+        }
+      }
+    }
+
+    async function handleClaimYes() {
+      if (isClaimSubmitting) return;
+      if (!currentMatchedRows.length) {
+        closeClaimModal();
+        showFeedback('warning', 'Nothing to Record', 'No matched record is ready to add to the claimed logbook.');
+        return;
+      }
+
+      if (!ensureOnline('claim')) return;
+
+      try {
+        isClaimSubmitting = true;
+        setClaimLoadingState(true);
+        setStatus('Recording the claim in the logbook...', 'success');
+
+        const response = await jsonpRequest(CONFIG.appsScriptUrl, {
+          action: 'claim',
+          rowNumbers: currentMatchedRows.join(','),
+        });
+
+        if (!response || response.ok !== true) {
+          throw new Error(response?.error || 'Unable to record the claim in the logbook.');
+        }
+
+        const insertedCount = Number(response.insertedCount || 0);
+        closeClaimModal();
+
+        if (insertedCount > 0) {
+          const message = `${insertedCount} record${insertedCount > 1 ? 's were' : ' was'} added to the claimed logbook.`;
+          setStatus(`${message} Please take the documentation photo.`, 'success');
+          markCurrentRecordClaimed(currentMatchedRows);
+          const savedClaimRecord = Array.isArray(response.results) && response.results.length
+            ? { ...currentSelectedRecord, ...response.results[0] }
+            : currentSelectedRecord;
+          addClaimToCachedLogbook(savedClaimRecord);
+          currentMatchedRows = [];
+          currentBookSpread = 0;
+
+          // Refresh the cached logbook quietly, then open the portrait camera
+          // immediately because the claim itself is already saved in Sheets.
+          loadLogbookList({ force: true, silent: true, reason: 'claim' });
+          openClaimPhotoCamera(savedClaimRecord);
+        } else {
+          const message = 'No new record was added. It may already be in the logbook.';
+          setStatus(message, 'error');
+          showFeedback('warning', 'Already Recorded', message);
+        }
+      } catch (error) {
+        const message = error.message || 'Something went wrong while saving the claim.';
+        setStatus(message, 'error');
+        if (!navigator.onLine) showOfflineModal('claim');
+        else showFeedback('warning', 'Unable to Save', message);
+      } finally {
+        isClaimSubmitting = false;
+        setClaimLoadingState(false);
+      }
+    }
+
+    function handleReset() {
+      setTimeout(() => {
+        currentMatchedRows = [];
+        currentResultRecords = [];
+        currentSearchMode = 'full';
+        currentSelectedRecord = null;
+        invalidateFallbackSearch();
+        lookupRequestSequence += 1;
+        isLookupLoading = false;
+        setLookupLoadingState(false, 'full');
+        setStatus('');
+        hideResults();
+        closeNotFoundModal();
+        closeFeedbackModal();
+        closeClaimModal();
+        closeQrModal();
+        closeLogbookModal();
+        hideLoadingModal();
+        syncNameFieldOrder();
+        firstNameInput.focus();
+      }, 0);
+    }
+
+    function getRawInput() {
+      return {
+        firstName: firstNameInput.value.trim(),
+        lastName: lastNameInput.value.trim(),
+      };
+    }
+
+    function getNormalizedInput() {
+      const raw = getRawInput();
+      return {
+        firstName: normalizeName(raw.firstName),
+        lastName: normalizeName(raw.lastName),
+      };
+    }
+
+    const SEARCH_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+
+    function setLookupLoadingState(isLoading, mode = 'full') {
+      checkBtn.disabled = isLoading;
+      searchFirstOnlyBtn.disabled = isLoading;
+      searchLastOnlyBtn.disabled = isLoading;
+
+      if (isLoading) {
+        checkBtn.innerHTML = `${SEARCH_ICON_SVG}<span class="loading-dots">Searching</span>`;
+      } else {
+        checkBtn.innerHTML = `${SEARCH_ICON_SVG}<span>Search</span>`;
+      }
+    }
+
+    function setClaimLoadingState(isLoading) {
+      claimYesBtn.disabled = isLoading;
+      claimNoBtn.disabled = isLoading;
+      claimYesBtn.textContent = isLoading ? 'SAVING...' : 'OO, I-RECORD';
+      claimNoBtn.textContent = 'HINDI';
+    }
+
+    function setStatus(message, type = '') {
+      if (!statusMessage) return;
+      statusMessage.textContent = message;
+      statusMessage.className = `status ${type}`.trim();
+    }
+
+    function getSearchingMessage(mode) {
+      if (mode === 'first') return 'Searching by first name only...';
+      if (mode === 'last') return 'Searching by last name only...';
+      return 'Searching using first name and last name...';
+    }
+
+    function getFoundMessage(count, mode) {
+      const label = count === 1 ? 'record' : 'records';
+      if (mode === 'first') return `${count} ${label} found using the first name only.`;
+      if (mode === 'last') return `${count} ${label} found using the last name only.`;
+      return `${count} matching ${label} found.`;
+    }
+
+    function renderResults(results, mode, rawInput) {
+      resultsBody.innerHTML = '';
+
+      results.forEach((record, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td data-label="Timestamp" class="cell-medium">${escapeHtml(formatTimestamp(record.timestamp || ''))}</td>
+          <td data-label="First Name" class="cell-medium cell-namewrap">${renderNullable(record.firstName)}</td>
+          <td data-label="Middle Name" class="cell-compact">${renderNullable(record.middleName)}</td>
+          <td data-label="Last Name" class="cell-compact">${renderNullable(record.lastName)}</td>
+          <td data-label="Degree Program" class="cell-medium">${renderNullable(record.degreeProgram)}</td>
+          <td data-label="Campus/College" class="cell-medium">${renderNullable(abbreviateCampus(record.campusCollege))}</td>
+          <td data-label="Batch" class="cell-compact">${renderNullable(getRecordBatch(record))}</td>
+          <td data-label="Action"><button type="button" class="btn btn-select" data-select-index="${index}" ${isRecordAlreadyClaimed(record) ? 'disabled' : ''}>${isRecordAlreadyClaimed(record) ? 'Claimed' : 'Record claim'}</button></td>
+        `;
+        resultsBody.appendChild(row);
+      });
+
+      const count = results.length;
+      resultCountBadge.textContent = `${count} ${count === 1 ? 'result' : 'results'}`;
+
+      if (mode === 'first') {
+        resultsTitle.textContent = 'First Name Matches';
+        resultsContext.textContent = `Showing records matching “${rawInput.firstName}” by first name only. Choose the correct alumnus before recording.`;
+      } else if (mode === 'last') {
+        resultsTitle.textContent = 'Last Name Matches';
+        resultsContext.textContent = `Showing records matching “${rawInput.lastName}” by last name only. Choose the correct alumnus before recording.`;
+      } else {
+        resultsTitle.textContent = 'Matched Alumni Record';
+        resultsContext.textContent = results.length > 1
+          ? `Multiple records matched “${rawInput.firstName} ${rawInput.lastName}”. Choose the correct alumnus.`
+          : `Showing the match for “${rawInput.firstName} ${rawInput.lastName}”.`;
+      }
+
+      resultsSection.classList.remove('is-hidden');
+      resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function handleResultSelection(event) {
+      const button = event.target.closest('[data-select-index]');
+      if (!button) return;
+
+      const index = Number(button.dataset.selectIndex);
+      const record = currentResultRecords[index];
+      const rowNumber = Number(record?.rowNumber);
+
+      if (isRecordAlreadyClaimed(record)) {
+        showFeedback('warning', 'Already Claimed 📖', `${formatLogbookName(record)} is already marked as claimed${getClaimDateValue(record) ? ` on ${formatClaimDate(getClaimDateValue(record))}` : ''}.`);
+        return;
+      }
+
+      if (!record || !Number.isInteger(rowNumber) || rowNumber <= 0) {
+        showFeedback('warning', 'Record Unavailable', 'This result cannot be selected because its sheet row number is missing.');
+        return;
+      }
+
+      currentMatchedRows = [rowNumber];
+      currentSelectedRecord = record;
+      openClaimModal(1, currentSearchMode, record);
+    }
+
+    function renderNullable(value) {
+      if (!value || String(value).trim() === '') return '<span class="empty-cell">—</span>';
+      return escapeHtml(String(value));
+    }
+
+    function hideResults() {
+      resultsBody.innerHTML = '';
+      resultsSection.classList.add('is-hidden');
+      resultCountBadge.textContent = '0 result';
+      resultsTitle.textContent = 'Matched Alumni Record';
+      resultsContext.textContent = 'Showing the closest matching record.';
+    }
+
+    function openNotFoundModal(rawInput, failedMode = 'full') {
+      const first = rawInput.firstName || 'this first name';
+      const last = rawInput.lastName || 'this last name';
+      const notFoundTitle = document.getElementById('notFoundTitle');
+      const notFoundQrBtn = document.getElementById('notFoundQrBtn');
+
+      if (failedMode === 'first') attemptedPartialModes.add('first');
+      if (failedMode === 'last') attemptedPartialModes.add('last');
+
+      const fallbackReady =
+        Boolean(fallbackSearchToken) &&
+        fallbackSearchNameKey === getFallbackNameKey(rawInput);
+      const canTryFirst = fallbackReady && Boolean(rawInput.firstName) && !attemptedPartialModes.has('first');
+      const canTryLast = fallbackReady && Boolean(rawInput.lastName) && !attemptedPartialModes.has('last');
+
+      searchFirstOnlyLabel.textContent = `Search “${first}” only`;
+      searchLastOnlyLabel.textContent = `Search “${last}” only`;
+      searchFirstOnlyBtn.disabled = !canTryFirst;
+      searchLastOnlyBtn.disabled = !canTryLast;
+      searchFirstOnlyBtn.classList.toggle('is-hidden', !canTryFirst);
+      searchLastOnlyBtn.classList.toggle('is-hidden', !canTryLast);
+      notFoundQrBtn.classList.remove('is-hidden');
+
+      if (failedMode === 'full') {
+        notFoundTitle.textContent = 'No exact match found';
+        notFoundMessage.textContent =
+          `We could not find “${first} ${last}”. You may now search by either the first name or the last name only.`;
+      } else if (canTryFirst && !canTryLast) {
+        notFoundTitle.textContent = 'No last-name match found';
+        notFoundMessage.textContent =
+          `No record matched the last name “${last}”. Try the first name “${first}” only, or use the form if the alumnus is not listed.`;
+      } else if (canTryLast && !canTryFirst) {
+        notFoundTitle.textContent = 'No first-name match found';
+        notFoundMessage.textContent =
+          `No record matched the first name “${first}”. Try the last name “${last}” only, or use the form if the alumnus is not listed.`;
+      } else {
+        notFoundTitle.textContent = 'No alumni record found';
+        notFoundMessage.textContent =
+          `No record matched the complete name, first name, or last name. Please scan the QR code and answer the Google Form.`;
+      }
+
+      const firstAvailableButton = [searchLastOnlyBtn, searchFirstOnlyBtn, notFoundQrBtn]
+        .find((button) => !button.disabled && !button.classList.contains('is-hidden'));
+      openAccessibleModal(notFoundModal, firstAvailableButton || closeNotFoundModalBtn);
+    }
+
+    function closeNotFoundModal() {
+      closeAccessibleModal(notFoundModal);
+    }
+
+    function showFeedback(type, title, message) {
+      const normalizedType = ['success', 'warning', 'info', 'error'].includes(type) ? type : 'info';
+      const feedbackStyles = {
+        success: { iconClass: 'modal-icon-success', emoji: '🎉', buttonClass: 'btn-primary' },
+        warning: { iconClass: 'modal-icon-warning', emoji: '⚠️', buttonClass: 'btn-secondary' },
+        info: { iconClass: 'modal-icon-info', emoji: '💌', buttonClass: 'btn-secondary' },
+        error: { iconClass: 'modal-icon-error', emoji: '😿', buttonClass: 'btn-secondary' },
+      };
+      const style = feedbackStyles[normalizedType];
+      feedbackModal.querySelector('.feedback-modal').dataset.feedbackType = normalizedType;
+      feedbackIcon.className = `modal-icon cute-face ${style.iconClass}`;
+      feedbackIcon.textContent = style.emoji;
+      feedbackTitle.textContent = title;
+      feedbackMessage.textContent = message;
+      dismissFeedbackModalBtn.className = `btn ${style.buttonClass}`;
+      openAccessibleModal(feedbackModal, dismissFeedbackModalBtn);
+    }
+
+    function closeFeedbackModal() {
+      closeAccessibleModal(feedbackModal);
+    }
+
+    function showLoadingModal(kind = 'search', detail = '') {
+      const isLogbook = kind === 'logbook';
+      loadingEmoji.textContent = isLogbook ? '📖' : '🔎';
+      loadingTitle.textContent = isLogbook
+        ? detail === 'claim' ? 'Updating the logbook' : 'Refreshing the logbook'
+        : detail === 'first' ? 'Searching first names' : detail === 'last' ? 'Searching last names' : 'Searching records';
+      loadingMessage.textContent = isLogbook
+        ? detail === 'claim'
+          ? 'Your new claim was saved. Fetching the newest logbook copy now.'
+          : detail === 'initial'
+            ? 'Preparing the first saved copy of the claimed alumni logbook.'
+            : 'Please wait while we fetch the newest claimed records.'
+        : 'Please wait while we check the alumni list.';
+      openAccessibleModal(loadingModal, loadingDialog);
+    }
+
+    function hideLoadingModal() {
+      closeAccessibleModal(loadingModal);
+    }
+
+    function ensureOnline(context = 'general') {
+      if (navigator.onLine) return true;
+      showOfflineModal(context);
+      return false;
+    }
+
+    function showOfflineModal(context = 'general') {
+      const messages = {
+        startup: 'You are currently offline. You can still view a previously saved logbook on this device.',
+        search: 'Searching names needs an internet connection. Please reconnect and try again.',
+        claim: 'Recording a new claim needs an internet connection. Your current form entries were not sent.',
+        'photo-upload': 'Uploading the documentation photo needs an internet connection. Reconnect and select the campus again.',
+        logbook: 'The newest logbook could not be fetched. The saved copy on this device will remain available.',
+        'connection-lost': 'The internet connection was lost. Saved logbook data remains available on this device.',
+        general: 'Please check your internet connection. Your saved logbook can still be viewed from this device.',
+      };
+      offlineMessage.textContent = messages[context] || messages.general;
+      openAccessibleModal(offlineModal, dismissOfflineModalBtn);
+    }
+
+    function closeOfflineModal() {
+      closeAccessibleModal(offlineModal);
+    }
+
+    function openClaimModal(resultCount, mode = 'full', record = null) {
+      const searchLabel = mode === 'first'
+        ? 'first-name-only search'
+        : mode === 'last'
+          ? 'last-name-only search'
+          : 'exact name search';
+      const selectedName = [record?.firstName, record?.middleName, record?.lastName]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      currentSelectedRecord = record;
+      const selectedBatch = getRecordBatch(record);
+      const selectedCampus = abbreviateCampus(record?.campusCollege || '');
+      const details = [selectedBatch ? `Batch ${selectedBatch}` : '', selectedCampus].filter(Boolean).join(' • ');
+      claimModalSubtitle.textContent = selectedName
+        ? `${selectedName}${details ? ` — ${details}` : ''} was selected through the ${searchLabel}. Press YES to record the claim today.`
+        : `This record was selected through the ${searchLabel}. Press YES to add it to today’s logbook.`;
+      openAccessibleModal(claimModal, claimYesBtn);
+    }
+
+    function closeClaimModalByChoice() {
+      if (isClaimSubmitting) return;
+      closeClaimModal();
+    }
+
+    function closeClaimModal() {
+      closeAccessibleModal(claimModal);
+    }
+
+
+    async function openClaimPhotoCamera(record) {
+      pendingClaimPhotoRecord = record ? { ...record } : null;
+      capturedClaimPhotoDataUrl = '';
+      claimPhotoFallbackInput.value = '';
+      resetClaimCameraUi();
+      closeFeedbackModal();
+      openAccessibleModal(claimCameraModal, captureClaimPhotoBtn);
+      await startClaimCamera();
+    }
+
+    function resetClaimCameraUi() {
+      claimCameraVideo.hidden = false;
+      claimPhotoPreview.hidden = true;
+      claimPhotoPreview.removeAttribute('src');
+      claimCameraPlaceholder.hidden = false;
+      claimCameraPlaceholder.innerHTML = '<div><span aria-hidden="true">📷</span>Preparing the portrait camera…</div>';
+      claimCameraStatus.textContent = 'Please allow camera access when prompted.';
+      captureClaimPhotoBtn.hidden = false;
+      captureClaimPhotoBtn.disabled = true;
+      fallbackClaimPhotoBtn.hidden = true;
+      recaptureClaimPhotoBtn.hidden = true;
+      finishClaimPhotoBtn.hidden = true;
+    }
+
+    async function startClaimCamera() {
+      stopClaimCamera();
+      capturedClaimPhotoDataUrl = '';
+      claimCameraVideo.hidden = false;
+      claimPhotoPreview.hidden = true;
+      claimCameraPlaceholder.hidden = false;
+      claimCameraPlaceholder.innerHTML = '<div><span aria-hidden="true">📷</span>Opening the portrait camera…</div>';
+      claimCameraStatus.textContent = 'Keep the claimant and the yearbook inside the portrait frame.';
+      captureClaimPhotoBtn.hidden = false;
+      captureClaimPhotoBtn.disabled = true;
+      fallbackClaimPhotoBtn.hidden = true;
+      recaptureClaimPhotoBtn.hidden = true;
+      finishClaimPhotoBtn.hidden = true;
+
+      if (!window.isSecureContext) {
+        showClaimCameraFallback(
+          'Live camera access requires HTTPS. Publish this page through GitHub Pages, not an unsecured HTTP link.'
+        );
+        return;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showClaimCameraFallback('Live camera access is not supported by this browser.');
+        return;
+      }
+
+      const cameraAttempts = [
+        {
+          audio: false,
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 1920 },
+            aspectRatio: { ideal: 0.75 },
+          },
+        },
+        {
+          audio: false,
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 1920 },
+          },
+        },
+        { audio: false, video: true },
+      ];
+
+      let lastCameraError = null;
+
+      for (const constraints of cameraAttempts) {
+        try {
+          claimCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+          claimCameraVideo.srcObject = claimCameraStream;
+          await claimCameraVideo.play();
+          claimCameraPlaceholder.hidden = true;
+          captureClaimPhotoBtn.disabled = false;
+          claimCameraStatus.textContent = 'Ready. Make sure the claimant is holding the yearbook clearly.';
+          return;
+        } catch (error) {
+          lastCameraError = error;
+          stopClaimCamera();
+
+          if (
+            error &&
+            (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError')
+          ) {
+            break;
+          }
+        }
+      }
+
+      const denied = lastCameraError && (
+        lastCameraError.name === 'NotAllowedError' ||
+        lastCameraError.name === 'PermissionDeniedError'
+      );
+      showClaimCameraFallback(
+        denied
+          ? 'Camera permission was not granted. Allow camera access in the browser or use the phone camera button below.'
+          : 'The live camera could not be opened. Use the phone camera button below.'
+      );
+    }
+
+    function showClaimCameraFallback(message) {
+      stopClaimCamera();
+      claimCameraVideo.hidden = true;
+      claimCameraPlaceholder.hidden = false;
+      claimCameraPlaceholder.innerHTML = '<div><span aria-hidden="true">📱</span>Use your device camera to take the portrait photo.</div>';
+      claimCameraStatus.textContent = message;
+      captureClaimPhotoBtn.hidden = true;
+      fallbackClaimPhotoBtn.hidden = false;
+      recaptureClaimPhotoBtn.hidden = true;
+      finishClaimPhotoBtn.hidden = true;
+    }
+
+    function captureClaimPhoto() {
+      if (
+        !claimCameraStream ||
+        !claimCameraVideo.videoWidth ||
+        !claimCameraVideo.videoHeight
+      ) {
+        claimCameraStatus.textContent = 'The camera is not ready yet. Please wait a moment.';
+        return;
+      }
+
+      drawSourceToClaimPhotoCanvas(
+        claimCameraVideo,
+        claimCameraVideo.videoWidth,
+        claimCameraVideo.videoHeight
+      );
+      showCapturedClaimPhoto();
+    }
+
+    function drawSourceToClaimPhotoCanvas(source, sourceWidth, sourceHeight) {
+      const targetWidth = Number(CONFIG.claimPhotoWidth || 1200);
+      const targetHeight = Number(CONFIG.claimPhotoHeight || 1600);
+      const targetRatio = targetWidth / targetHeight;
+      const sourceRatio = sourceWidth / sourceHeight;
+
+      let sourceX = 0;
+      let sourceY = 0;
+      let cropWidth = sourceWidth;
+      let cropHeight = sourceHeight;
+
+      if (sourceRatio > targetRatio) {
+        cropWidth = sourceHeight * targetRatio;
+        sourceX = (sourceWidth - cropWidth) / 2;
+      } else {
+        cropHeight = sourceWidth / targetRatio;
+        sourceY = (sourceHeight - cropHeight) / 2;
+      }
+
+      claimPhotoCanvas.width = targetWidth;
+      claimPhotoCanvas.height = targetHeight;
+      const context = claimPhotoCanvas.getContext('2d', { alpha: false });
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, targetWidth, targetHeight);
+      context.drawImage(
+        source,
+        sourceX,
+        sourceY,
+        cropWidth,
+        cropHeight,
+        0,
+        0,
+        targetWidth,
+        targetHeight
+      );
+    }
+
+    function showCapturedClaimPhoto() {
+      capturedClaimPhotoDataUrl = claimPhotoCanvas.toDataURL(
+        'image/jpeg',
+        Number(CONFIG.claimPhotoQuality || 0.88)
+      );
+      claimPhotoPreview.src = capturedClaimPhotoDataUrl;
+      claimPhotoPreview.hidden = false;
+      claimCameraVideo.hidden = true;
+      claimCameraPlaceholder.hidden = true;
+      claimCameraStatus.textContent = 'Review the portrait. Choose Recapture or Finish.';
+      captureClaimPhotoBtn.hidden = true;
+      fallbackClaimPhotoBtn.hidden = true;
+      recaptureClaimPhotoBtn.hidden = false;
+      finishClaimPhotoBtn.hidden = false;
+      stopClaimCamera();
+    }
+
+    function handleFallbackClaimPhoto(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        claimCameraStatus.textContent = 'Please select or capture an image file.';
+        return;
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      const image = new Image();
+      image.onload = () => {
+        try {
+          drawSourceToClaimPhotoCanvas(image, image.naturalWidth, image.naturalHeight);
+          showCapturedClaimPhoto();
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        claimCameraStatus.textContent = 'The selected image could not be opened. Please try again.';
+      };
+      image.src = objectUrl;
+    }
+
+    function recaptureClaimPhoto() {
+      claimPhotoFallbackInput.value = '';
+      startClaimCamera();
+    }
+
+    function finishClaimPhoto() {
+      if (!capturedClaimPhotoDataUrl) {
+        claimCameraStatus.textContent = 'Take a photo before selecting Finish.';
+        return;
+      }
+
+      stopClaimCamera();
+      closeAccessibleModal(claimCameraModal);
+      openAccessibleModal(claimPhotoCampusModal, claimPhotoCampusButtons[0]);
+    }
+
+    function cancelClaimPhotoDocumentation() {
+      if (isClaimPhotoUploading) return;
+
+      stopClaimCamera();
+      closeAccessibleModal(claimCameraModal);
+      closeAccessibleModal(claimPhotoCampusModal);
+      const claimantName = pendingClaimPhotoRecord
+        ? formatLogbookName(pendingClaimPhotoRecord)
+        : 'The claimant';
+      capturedClaimPhotoDataUrl = '';
+      pendingClaimPhotoRecord = null;
+      showFeedback(
+        'warning',
+        'Photo Not Uploaded',
+        `${claimantName}'s claim is already saved, but no documentation photo was uploaded.`
+      );
+    }
+
+    function stopClaimCamera() {
+      if (claimCameraStream) {
+        claimCameraStream.getTracks().forEach((track) => track.stop());
+      }
+      claimCameraStream = null;
+      claimCameraVideo.srcObject = null;
+    }
+
+    async function uploadClaimPhoto(campus) {
+      if (isClaimPhotoUploading) return;
+      if (!capturedClaimPhotoDataUrl || !pendingClaimPhotoRecord) {
+        closeAccessibleModal(claimPhotoCampusModal);
+        showFeedback('warning', 'Photo Missing', 'Please capture the documentation photo again.');
+        return;
+      }
+
+      if (!ensureOnline('photo-upload')) return;
+
+      isClaimPhotoUploading = true;
+      closeAccessibleModal(claimPhotoCampusModal);
+      updateClaimPhotoProgress(0, 'Preparing the portrait photo…');
+      claimPhotoUploadMessage.textContent = `Uploading to the ${campus} folder in Google Drive.`;
+      openAccessibleModal(claimPhotoUploadModal);
+
+      const uploadToken = createClaimPhotoUploadToken();
+      const record = pendingClaimPhotoRecord;
+      const body = new URLSearchParams({
+        action: 'upload_claim_photo',
+        uploadToken,
+        campus,
+        imageData: capturedClaimPhotoDataUrl,
+        sourceRow: String(record.sourceRow || record.rowNumber || ''),
+        lastName: firstNonEmpty(record.lastName, record.lastname, record.surname),
+        firstName: firstNonEmpty(record.firstName, record.firstname, record.givenName),
+        batch: getRecordBatch(record),
+        claimedDate: String(
+          firstNonEmpty(record.dateClaimed, record.claimedDate, new Date().toISOString())
+        ),
+      });
+
+      let pollingStarted = false;
+      const beginStatusPolling = () => {
+        if (pollingStarted) return;
+        pollingStarted = true;
+        pollClaimPhotoUploadStatus(uploadToken, campus);
+      };
+
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', CONFIG.appsScriptUrl, true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
+
+        xhr.upload.addEventListener('progress', (event) => {
+          if (!event.lengthComputable) return;
+          const transferredPercent = Math.round((event.loaded / event.total) * 90);
+          updateClaimPhotoProgress(
+            Math.max(1, Math.min(90, transferredPercent)),
+            transferredPercent < 90
+              ? 'Uploading photo data…'
+              : 'Photo received. Saving to Drive…'
+          );
+          if (event.loaded >= event.total) {
+            window.setTimeout(beginStatusPolling, 250);
+          }
+        });
+
+        // Apps Script accepts the cross-origin form POST. Some browsers do not
+        // expose the redirected response because of CORS, so the separate
+        // JSONP status endpoint confirms that Drive finished saving the file.
+        xhr.addEventListener('loadend', beginStatusPolling);
+        xhr.addEventListener('error', beginStatusPolling);
+        xhr.addEventListener('abort', () => {
+          finishClaimPhotoUploadWithError('The photo upload was cancelled.');
+        });
+        xhr.send(body.toString());
+
+        window.setTimeout(beginStatusPolling, 1200);
+      } catch (error) {
+        finishClaimPhotoUploadWithError(
+          error.message || 'The documentation photo could not be uploaded.'
+        );
+      }
+    }
+
+    async function pollClaimPhotoUploadStatus(uploadToken, campus) {
+      const deadline = Date.now() + Number(CONFIG.claimPhotoStatusTimeoutMs || 90000);
+      let processingPercent = 91;
+
+      while (Date.now() < deadline && isClaimPhotoUploading) {
+        if (!navigator.onLine) {
+          finishClaimPhotoUploadWithError('The internet connection was lost during the photo upload.');
+          return;
+        }
+
+        try {
+          const status = await jsonpRequest(CONFIG.appsScriptUrl, {
+            action: 'claim_photo_status',
+            uploadToken,
+          });
+
+          if (status && status.state === 'saved') {
+            updateClaimPhotoProgress(100, 'Upload complete.');
+            const claimantName = pendingClaimPhotoRecord
+              ? formatLogbookName(pendingClaimPhotoRecord)
+              : 'The claimant';
+            const fileName = status.fileName || 'the documentation photo';
+            window.setTimeout(() => {
+              closeAccessibleModal(claimPhotoUploadModal);
+              isClaimPhotoUploading = false;
+              capturedClaimPhotoDataUrl = '';
+              pendingClaimPhotoRecord = null;
+              showFeedback(
+                'success',
+                'Documentation Saved! 📸',
+                `${claimantName}'s portrait was uploaded to the ${status.campus || campus} folder as ${fileName}.`
+              );
+            }, 450);
+            return;
+          }
+
+          if (status && status.state === 'error') {
+            finishClaimPhotoUploadWithError(
+              status.message || 'Google Drive could not save the documentation photo.'
+            );
+            return;
+          }
+        } catch (error) {
+          if (!navigator.onLine) {
+            finishClaimPhotoUploadWithError('The internet connection was lost during the photo upload.');
+            return;
+          }
+          // A transient status-check failure is retried until the deadline.
+        }
+
+        processingPercent = Math.min(98, processingPercent + 1);
+        updateClaimPhotoProgress(processingPercent, 'Saving the photo to Google Drive…');
+        await delay(1200);
+      }
+
+      if (isClaimPhotoUploading) {
+        finishClaimPhotoUploadWithError(
+          'The upload confirmation timed out. Check the campus folder before trying again.'
+        );
+      }
+    }
+
+    function finishClaimPhotoUploadWithError(message) {
+      if (!isClaimPhotoUploading) return;
+      isClaimPhotoUploading = false;
+      closeAccessibleModal(claimPhotoUploadModal);
+      showFeedback('error', 'Photo Upload Failed', message);
+    }
+
+    function updateClaimPhotoProgress(percent, statusText) {
+      const safePercent = Math.max(0, Math.min(100, Math.round(Number(percent) || 0)));
+      claimPhotoProgressBar.style.width = `${safePercent}%`;
+      claimPhotoProgressPercent.textContent = `${safePercent}%`;
+      claimPhotoProgressStatus.textContent = statusText || 'Uploading…';
+      claimPhotoProgressBar.parentElement.setAttribute('role', 'progressbar');
+      claimPhotoProgressBar.parentElement.setAttribute('aria-valuemin', '0');
+      claimPhotoProgressBar.parentElement.setAttribute('aria-valuemax', '100');
+      claimPhotoProgressBar.parentElement.setAttribute('aria-valuenow', String(safePercent));
+    }
+
+    function createClaimPhotoUploadToken() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+      }
+      return `photo_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    }
+
+    function delay(milliseconds) {
+      return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+    }
+
+    function openQrModal() {
+      if (!CONFIG.googleFormUrl.includes('docs.google.com/forms')) {
+        showFeedback('warning', 'QR Link Missing', 'Please set the Google Form URL first.');
+        return;
+      }
+
+      if (CONFIG.googleFormUrl !== CONFIG.embeddedQrForUrl || !CONFIG.embeddedQrDataUrl) {
+        showFeedback(
+          'warning',
+          'QR Needs Updating',
+          'The Google Form URL was changed. Update the embedded QR code or use the Open Google Form link.'
+        );
+      }
+
+      qrImage.src = CONFIG.embeddedQrDataUrl;
+      qrFormLink.href = CONFIG.googleFormUrl;
+      openAccessibleModal(qrModal, closeQrModalBtn);
+    }
+
+    function closeQrModal() {
+      closeAccessibleModal(qrModal);
+    }
+
+    async function copyGoogleFormLink() {
+      if (!CONFIG.googleFormUrl.includes('docs.google.com/forms')) {
+        showFeedback('warning', 'Link Missing', 'Please set the Google Form URL first.');
+        return;
+      }
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(CONFIG.googleFormUrl);
+        } else {
+          fallbackCopyText(CONFIG.googleFormUrl);
+        }
+        setStatus('Google Form link copied.', 'success');
+        showFeedback('success', 'Link Copied! ✨', 'The Google Form link is ready to paste or share.');
+      } catch (error) {
+        setStatus('Unable to copy the Google Form link.', 'error');
+        showFeedback('warning', 'Copy Failed', 'The browser could not copy the link. Open the QR code and use the form link instead.');
+      }
+    }
+
+    async function shareGoogleFormLink() {
+      if (!CONFIG.googleFormUrl.includes('docs.google.com/forms')) {
+        showFeedback('warning', 'Link Missing', 'Please set the Google Form URL first.');
+        return;
+      }
+      const shareData = {
+        title: 'Alumni Yearbook Form',
+        text: 'Please answer this Google Form to be added to the yearbook claim list.',
+        url: CONFIG.googleFormUrl,
+      };
+      try {
+        if (navigator.share) {
+          await navigator.share(shareData);
+          setStatus('Share sheet opened.', 'success');
+        } else {
+          // Fallback to copy when Web Share API is unavailable (desktop browsers)
+          await copyGoogleFormLink();
+        }
+      } catch (error) {
+        // User cancelled or share failed silently
+        if (error && error.name !== 'AbortError') {
+          showFeedback('warning', 'Share Failed', 'The browser could not open the share sheet. Copy the link instead.');
+        }
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const temp = document.createElement('textarea');
+      temp.value = text;
+      temp.setAttribute('readonly', '');
+      temp.style.position = 'absolute';
+      temp.style.left = '-9999px';
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+    }
+
+    async function loadLogbookList(options = {}) {
+      if (!CONFIG.appsScriptUrl.includes('/exec')) return false;
+
+      const {
+        silent = false,
+        force = false,
+        showLoader = false,
+        reason = 'open',
+      } = options;
+
+      // Normal logbook opening uses memory/localStorage only. A network request
+      // happens only when there is no cache, the user presses Refresh, or a new
+      // claim was successfully inserted.
+      if (!force) {
+        if (hasLogbookCache || currentLogbookRecords.length) {
+          renderLogbookList(currentLogbookRecords);
+          return true;
+        }
+        if (restoreLogbookCache()) return true;
+      }
+
+      if (!navigator.onLine) {
+        if (!currentLogbookRecords.length && !hasLogbookCache) {
+          renderLogbookList([], 'No saved logbook is available on this device yet.');
+        } else {
+          renderLogbookList(currentLogbookRecords);
+        }
+        showOfflineModal('logbook');
+        return false;
+      }
+
+      const requestId = ++logbookRequestSequence;
+
+      try {
+        isLogbookLoading = true;
+        refreshLogbookBtn.disabled = true;
+        bookShell.classList.add('book-loading');
+        if (showLoader) showLoadingModal('logbook', reason);
+        if (!silent && !currentLogbookRecords.length) renderLogbookList([], '', true);
+
+        const response = await jsonpRequest(CONFIG.appsScriptUrl, {
+          action: 'logbook_list',
+          filterDate: '',
+          includeAll: 'true',
+          showAll: 'true',
+          sortOrder: 'latest',
+          limit: '0',
+        });
+
+        if (requestId !== logbookRequestSequence) return false;
+        if (!response || response.ok !== true) {
+          throw new Error(response?.error || 'Unable to load the logbook list.');
+        }
+
+        currentLogbookRecords = sortLogbookRecords((response.results || []).map((record) => ({ ...record })));
+        hasLogbookCache = true;
+        saveLogbookCache(currentLogbookRecords);
+        currentBookSpread = Math.min(currentBookSpread, Math.max(0, getBookSpreadCount() - 1));
+        renderLogbookList(currentLogbookRecords);
+        logbookLastUpdated.textContent = `Updated ${formatClockTime(new Date())} • saved on device`;
+        return true;
+      } catch (error) {
+        if (requestId !== logbookRequestSequence) return false;
+
+        const cacheRestored = currentLogbookRecords.length || hasLogbookCache || restoreLogbookCache();
+        if (cacheRestored) {
+          renderLogbookList(currentLogbookRecords);
+          logbookLastUpdated.textContent = 'Showing saved data • refresh unavailable';
+        } else if (!silent) {
+          currentBookSpread = 0;
+          renderLogbookList([], error.message || 'Unable to load the logbook list.');
+        }
+
+        if (!navigator.onLine) {
+          hideLoadingModal();
+          showOfflineModal('logbook');
+        } else if (!silent && !logbookModal.classList.contains('show')) {
+          showFeedback('error', 'Logbook Unavailable', error.message || 'Unable to load the logbook list.');
+        }
+        return false;
+      } finally {
+        if (requestId === logbookRequestSequence) {
+          isLogbookLoading = false;
+          refreshLogbookBtn.disabled = false;
+          bookShell.classList.remove('book-loading');
+          hideLoadingModal();
+        }
+      }
+    }
+
+    function readLogbookCache() {
+      try {
+        const raw = window.localStorage.getItem(CONFIG.logbookCacheKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (
+          !parsed ||
+          parsed.version !== CONFIG.logbookCacheVersion ||
+          !Array.isArray(parsed.records)
+        ) {
+          window.localStorage.removeItem(CONFIG.logbookCacheKey);
+          return null;
+        }
+        return parsed;
+      } catch (error) {
+        console.warn('Unable to read the saved logbook cache.', error);
+        return null;
+      }
+    }
+
+    function restoreLogbookCache() {
+      const cached = readLogbookCache();
+      if (!cached) return false;
+
+      currentLogbookRecords = sortLogbookRecords(cached.records.map((record) => ({ ...record })));
+      hasLogbookCache = true;
+      currentBookSpread = Math.min(currentBookSpread, Math.max(0, getBookSpreadCount() - 1));
+      renderLogbookList(currentLogbookRecords);
+      logbookLastUpdated.textContent = cached.savedAt
+        ? `Saved on device • ${formatCacheTimestamp(cached.savedAt)}`
+        : 'Saved on this device';
+      return true;
+    }
+
+    function saveLogbookCache(records) {
+      try {
+        const payload = {
+          version: CONFIG.logbookCacheVersion,
+          savedAt: new Date().toISOString(),
+          records: records.map((record) => ({ ...record })),
+        };
+        window.localStorage.setItem(CONFIG.logbookCacheKey, JSON.stringify(payload));
+        hasLogbookCache = true;
+      } catch (error) {
+        console.warn('Unable to save the logbook on this device.', error);
+      }
+    }
+
+    function addClaimToCachedLogbook(record) {
+      if (!record) return;
+
+      const claimedRecord = {
+        ...record,
+        isClaimed: true,
+        claimed: true,
+        dateClaimed: new Date().toISOString(),
+      };
+      const rowNumber = Number(claimedRecord.rowNumber);
+      const identityKey = getLogbookRecordIdentity(claimedRecord);
+      const withoutDuplicate = currentLogbookRecords.filter((item) => {
+        if (Number.isInteger(rowNumber) && rowNumber > 0 && Number(item.rowNumber) === rowNumber) return false;
+        return getLogbookRecordIdentity(item) !== identityKey;
+      });
+
+      currentLogbookRecords = sortLogbookRecords([claimedRecord, ...withoutDuplicate]);
+      hasLogbookCache = true;
+      saveLogbookCache(currentLogbookRecords);
+      renderLogbookList(currentLogbookRecords);
+      logbookLastUpdated.textContent = `Saved on device • ${formatClockTime(new Date())}`;
+    }
+
+    function getLogbookRecordIdentity(record = {}) {
+      return [
+        normalizeName(formatLogbookName(record)),
+        normalizeName(getRecordBatch(record)),
+      ].join('|');
+    }
+
+    function formatCacheTimestamp(value) {
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) return 'previous session';
+      return new Intl.DateTimeFormat('en-PH', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Manila',
+      }).format(parsed);
+    }
+
+    function openLogbookModal() {
+      closeFeedbackModal();
+      openAccessibleModal(logbookModal, closeLogbookModalBtn);
+      currentBookSpread = 0;
+      renderLogbookList(currentLogbookRecords);
+
+      // Fetch only on the very first use when this device has no saved copy.
+      if (!hasLogbookCache && !currentLogbookRecords.length) {
+        loadLogbookList({ showLoader: true, reason: 'initial' });
+      }
+    }
+
+    function closeLogbookModal() {
+      if (isBookFlipping) return;
+      closeAccessibleModal(logbookModal, viewLogbookBtn);
+    }
+
+    function getBookSpreadCount() {
+      return Math.max(1, Math.ceil(currentLogbookRecords.length / BOOK_ENTRIES_PER_PAGE));
+    }
+
+    function changeBookSpread(direction) {
+      if (isBookFlipping || isLogbookLoading) return;
+
+      const targetPage = currentBookSpread + direction;
+      if (targetPage < 0 || targetPage >= getBookSpreadCount()) return;
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        currentBookSpread = targetPage;
+        renderLogbookList(currentLogbookRecords);
+        resetBookPageScroll();
+        return;
+      }
+
+      animateSingleBookPageTurn(direction, targetPage);
+    }
+
+    function animateSingleBookPageTurn(direction, targetPage) {
+      const movingForward = direction > 0;
+      const currentPage = currentBookSpread;
+
+      isBookFlipping = true;
+      previousBookPageBtn.disabled = true;
+      nextBookPageBtn.disabled = true;
+
+      bookTurnSheet.className = 'book-turn-sheet is-prepared';
+      bookTurnFront.innerHTML = buildBookFaceMarkup(movingForward ? currentPage : targetPage);
+      bookTurnBack.innerHTML = '<span aria-hidden="true"></span>';
+
+      if (movingForward) {
+        // Put the destination underneath first, then turn only the old paper leaf away.
+        currentBookSpread = targetPage;
+        renderLogbookList(currentLogbookRecords);
+        resetBookPageScroll();
+        void bookTurnSheet.offsetWidth;
+        bookTurnSheet.classList.add('turn-next');
+      } else {
+        // Bring the earlier paper leaf back over the current page.
+        void bookTurnSheet.offsetWidth;
+        bookTurnSheet.classList.add('turn-previous');
+      }
+
+      window.setTimeout(() => {
+        if (!movingForward) {
+          currentBookSpread = targetPage;
+          renderLogbookList(currentLogbookRecords);
+          resetBookPageScroll();
+        }
+      }, movingForward ? 0 : 820);
+
+      window.setTimeout(() => {
+        bookTurnSheet.className = 'book-turn-sheet';
+        bookTurnFront.innerHTML = '';
+        bookTurnBack.innerHTML = '';
+        isBookFlipping = false;
+        renderLogbookList(currentLogbookRecords);
+        resetBookPageScroll();
+      }, 910);
+    }
+
+    function buildBookFaceMarkup(pageIndex) {
+      const pageStart = pageIndex * BOOK_ENTRIES_PER_PAGE;
+      const entries = currentLogbookRecords.slice(pageStart, pageStart + BOOK_ENTRIES_PER_PAGE);
+      const temporaryPage = document.createElement('div');
+      renderBookPage(temporaryPage, entries, 'Claimed Alumni', '', false);
+      return `${temporaryPage.innerHTML}<span class="book-page-number">${pageIndex + 1}</span>`;
+    }
+
+    function resetBookPageScroll() {
+      if (bookCurrentPage) bookCurrentPage.scrollTop = 0;
+    }
+
+    function renderLogbookList(records, errorMessage = '', isLoading = false) {
+      const total = records.length;
+      const pageCount = Math.max(1, Math.ceil(total / BOOK_ENTRIES_PER_PAGE));
+      currentBookSpread = Math.min(currentBookSpread, pageCount - 1);
+
+      const pageStart = currentBookSpread * BOOK_ENTRIES_PER_PAGE;
+      const pageEntries = records.slice(pageStart, pageStart + BOOK_ENTRIES_PER_PAGE);
+
+      renderBookPage(bookCurrentPage, pageEntries, 'Claimed Alumni', errorMessage, isLoading);
+      bookCurrentPageNumber.textContent = String(currentBookSpread + 1);
+      previousBookPageBtn.disabled = currentBookSpread <= 0 || isLoading || isBookFlipping;
+      nextBookPageBtn.disabled = currentBookSpread >= pageCount - 1 || isLoading || isBookFlipping;
+
+      logbookCountBadge.textContent = `${total} ${total === 1 ? 'record' : 'records'}`;
+      bookPageStatus.textContent = isLoading
+        ? 'Opening all claim records…'
+        : errorMessage
+          ? errorMessage
+          : total
+            ? `Showing ${pageStart + 1}–${Math.min(pageStart + BOOK_ENTRIES_PER_PAGE, total)} of ${total} records • Page ${currentBookSpread + 1} of ${pageCount}`
+            : 'No claimed alumni records found.';
+    }
+
+    function renderBookPage(container, entries, heading, errorMessage, isLoading) {
+      container.innerHTML = '';
+      const headingEl = document.createElement('div');
+      headingEl.className = 'book-page-heading';
+      headingEl.innerHTML = `<strong>${escapeHtml(heading)}</strong><span>RSU Yearbook</span>`;
+      container.appendChild(headingEl);
+
+      const columnHead = document.createElement('div');
+      columnHead.className = 'book-column-head';
+      columnHead.innerHTML = '<span>Full Name</span><span>Batch</span><span>Claimed Date</span>';
+      container.appendChild(columnHead);
+
+      if (isLoading) {
+        container.insertAdjacentHTML('beforeend', '<div class="book-empty"><div><span class="book-empty-emoji">📖</span>Opening the logbook…</div></div>');
+        return;
+      }
+
+      if (errorMessage) {
+        container.insertAdjacentHTML('beforeend', `<div class="book-empty"><div><span class="book-empty-emoji">😿</span>${escapeHtml(errorMessage)}</div></div>`);
+        return;
+      }
+
+      if (!entries.length) {
+        container.insertAdjacentHTML('beforeend', '<div class="book-empty"><div><span class="book-empty-emoji">📝</span>This page has no entries.</div></div>');
+        return;
+      }
+
+      entries.forEach((record) => {
+        const entry = document.createElement('article');
+        entry.className = 'book-entry';
+        entry.innerHTML = `
+          <div class="book-entry-name">${escapeHtml(formatLogbookName(record))}</div>
+          <div class="book-entry-batch">${escapeHtml(getRecordBatch(record) || '—')}</div>
+          <div class="book-entry-date">${escapeHtml(formatClaimDate(getClaimDateValue(record)))}</div>
+        `;
+        container.appendChild(entry);
+      });
+    }
+
+    function formatLogbookName(record = {}) {
+      const lastName = firstNonEmpty(record.lastName, record.lastname, record.surname, record.familyName);
+      const firstName = firstNonEmpty(record.firstName, record.firstname, record.givenName);
+
+      // The logbook intentionally displays only: Lastname, Firstname.
+      if (lastName || firstName) {
+        return [lastName, firstName].filter(Boolean).join(', ');
+      }
+
+      const rawFullName = firstNonEmpty(record.fullName, record.name, record.alumniName);
+      if (!rawFullName) return 'Unnamed alumni';
+
+      if (rawFullName.includes(',')) {
+        const [surnamePart, ...givenParts] = rawFullName.split(',');
+        const givenText = givenParts.join(',').trim();
+        const firstOnly = givenText.split(/\s+/).filter(Boolean)[0] || '';
+        return [surnamePart.trim(), firstOnly].filter(Boolean).join(', ');
+      }
+
+      const parts = rawFullName.trim().split(/\s+/).filter(Boolean);
+      if (parts.length < 2) return rawFullName.trim();
+      const surnameParticles = new Set(['de', 'del', 'dela', 'la', 'las', 'los', 'san', 'santa']);
+      let surnameStart = parts.length - 1;
+      if (parts.length >= 3 && surnameParticles.has(parts[parts.length - 2].toLowerCase())) surnameStart = parts.length - 2;
+      const surname = parts.slice(surnameStart).join(' ');
+      const firstOnly = parts[0];
+      return `${surname}, ${firstOnly}`;
+    }
+
+    function getRecordBatch(record = {}) {
+      return firstNonEmpty(
+        record.batch,
+        record.batchYear,
+        record.yearGraduated,
+        record.graduationYear,
+        record.year,
+        record.schoolYear
+      );
+    }
+
+    function getClaimDateValue(record = {}) {
+      return firstNonEmpty(
+        record.dateClaimed,
+        record.claimedDate,
+        record.claimDate,
+        record.claimedAt,
+        record.claimTimestamp,
+        record.date,
+        record.timestampClaimed,
+        record._fallbackClaimDate
+      );
+    }
+
+    function isRecordAlreadyClaimed(record = {}) {
+      const status = String(firstNonEmpty(record.claimStatus, record.status, '')).toLowerCase();
+      const explicitClaimDate = firstNonEmpty(
+        record.dateClaimed,
+        record.claimedDate,
+        record.claimDate,
+        record.claimedAt,
+        record.claimTimestamp,
+        record.timestampClaimed
+      );
+      return record.isClaimed === true || record.claimed === true || status === 'claimed' || Boolean(explicitClaimDate);
+    }
+
+    function markCurrentRecordClaimed(rowNumbers) {
+      const rowSet = new Set(rowNumbers.map(Number));
+      currentResultRecords.forEach((record) => {
+        if (rowSet.has(Number(record.rowNumber))) {
+          record.isClaimed = true;
+          record.dateClaimed = new Date().toISOString();
+        }
+      });
+      resultsBody.querySelectorAll('[data-select-index]').forEach((button) => {
+        const record = currentResultRecords[Number(button.dataset.selectIndex)];
+        if (record && rowSet.has(Number(record.rowNumber))) {
+          button.disabled = true;
+          button.textContent = 'Claimed';
+        }
+      });
+    }
+
+    function sortLogbookRecords(records) {
+      return [...records].sort((a, b) => {
+        const timeA = parseDateValue(getClaimDateValue(a));
+        const timeB = parseDateValue(getClaimDateValue(b));
+        return timeB - timeA;
+      });
+    }
+
+    function parseDateValue(value) {
+      if (!value) return 0;
+      const raw = String(value).trim();
+      let parsed = new Date(raw);
+      if (Number.isNaN(parsed.getTime()) && raw.includes(' ')) parsed = new Date(raw.replace(' ', 'T'));
+      return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+    }
+
+    function formatClaimDate(value) {
+      if (!value) return '—';
+      const raw = String(value).trim();
+      let parsed = new Date(raw);
+      if (Number.isNaN(parsed.getTime()) && raw.includes(' ')) parsed = new Date(raw.replace(' ', 'T'));
+      if (Number.isNaN(parsed.getTime())) return raw;
+
+      return new Intl.DateTimeFormat('en-PH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Manila',
+      }).format(parsed);
+    }
+
+    function formatClockTime(date) {
+      return new Intl.DateTimeFormat('en-PH', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Manila',
+      }).format(date);
+    }
+
+    function firstNonEmpty(...values) {
+      const found = values.find((value) => value !== undefined && value !== null && String(value).trim() !== '');
+      return found === undefined ? '' : String(found).trim();
+    }
+
+    function openAccessibleModal(modal, focusTarget) {
+      if (!modal) return;
+
+      const active = document.activeElement;
+      if (!modal.classList.contains('show') && active && active !== document.body && !modal.contains(active)) {
+        modalReturnFocus.set(modal, active);
+      }
+
+      modal.inert = false;
+      modal.removeAttribute('inert');
+      modal.setAttribute('aria-hidden', 'false');
+      modal.classList.add('show');
+      syncBodyModalState();
+
+      window.requestAnimationFrame(() => {
+        const target = focusTarget || modal.querySelector(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (target && typeof target.focus === 'function') {
+          target.focus({ preventScroll: true });
+        }
+      });
+    }
+
+    function closeAccessibleModal(modal, preferredReturnFocus = null) {
+      if (!modal || !modal.classList.contains('show')) return;
+
+      const active = document.activeElement;
+      const storedReturnFocus = modalReturnFocus.get(modal);
+      const returnTarget = preferredReturnFocus || storedReturnFocus;
+
+      // Move focus outside before applying aria-hidden/inert. This prevents
+      // Chrome's "descendant retained focus" accessibility warning.
+      if (active && modal.contains(active)) {
+        if (
+          returnTarget &&
+          returnTarget.isConnected &&
+          !returnTarget.disabled &&
+          typeof returnTarget.focus === 'function'
+        ) {
+          returnTarget.focus({ preventScroll: true });
+        } else {
+          active.blur();
+        }
+      }
+
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.inert = true;
+      modal.setAttribute('inert', '');
+      modalReturnFocus.delete(modal);
+      syncBodyModalState();
+    }
+
+    function syncBodyModalState() {
+      const hasOpenModal =
+        notFoundModal.classList.contains('show') ||
+        feedbackModal.classList.contains('show') ||
+        loadingModal.classList.contains('show') ||
+        offlineModal.classList.contains('show') ||
+        claimModal.classList.contains('show') ||
+        claimCameraModal.classList.contains('show') ||
+        claimPhotoCampusModal.classList.contains('show') ||
+        claimPhotoUploadModal.classList.contains('show') ||
+        logbookModal.classList.contains('show') ||
+        qrModal.classList.contains('show');
+
+      document.body.classList.toggle('modal-open', hasOpenModal);
+    }
+
+    function jsonpRequest(baseUrl, params) {
+      return new Promise((resolve, reject) => {
+        if (!navigator.onLine) {
+          reject(new Error('No internet connection is available.'));
+          return;
+        }
+        const callbackName = `lookupCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement('script');
+        let timeoutId;
+
+        const cleanup = () => {
+          if (window[callbackName]) delete window[callbackName];
+          script.remove();
+          clearTimeout(timeoutId);
+        };
+
+        timeoutId = window.setTimeout(() => {
+          cleanup();
+          reject(new Error('The request timed out while contacting Apps Script.'));
+        }, CONFIG.requestTimeoutMs);
+
+        window[callbackName] = (payload) => {
+          cleanup();
+          resolve(payload);
+        };
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('Unable to connect to Apps Script. Check the deployed URL and access settings.'));
+        };
+
+        const query = new URLSearchParams({
+          ...params,
+          callback: callbackName,
+          _: Date.now().toString(),
+        });
+
+        script.src = `${baseUrl}?${query.toString()}`;
+        document.body.appendChild(script);
+      });
+    }
+
+    function normalizeName(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim()
+        .replace(/(?:^|[\s,.-])(jr|sr|ii|iii|iv|v)(?:\.|,)?$/i, '')
+        .replace(/[.'’`",_-]/g, '')
+        .replace(/\s+/g, '')
+        .replace(/[^a-z0-9]/g, '');
+    }
+
+    function abbreviateCampus(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+
+      const normalized = normalizeCampusKey(raw);
+      if (CAMPUS_ABBREVIATIONS[normalized]) return CAMPUS_ABBREVIATIONS[normalized];
+      if (normalized.includes('instituteofinformationtechnology') || normalized.includes('collegeofcomputingmultimediaartsanddigitalinnovation')) return 'IIT/CCMADI';
+      if (normalized.includes('collegeofartsandsciences')) return 'CAS';
+      if (normalized.includes('collegeofeducation')) return 'CED';
+      if (normalized.includes('collegeofbusinessandaccountancy')) return 'CBA';
+      if (normalized.includes('collegeofengineeringandtechnology')) return 'CET';
+      if (normalized.includes('instituteofcriminaljusticeeducation')) return 'ICJE';
+      if (normalized.includes('collegeofagricultureforestryandenvironmentalscience')) return 'CAFES';
+      if (normalized.includes('sanandres')) return 'San Andres';
+      if (normalized.includes('calatrava')) return 'Calatrava';
+      if (normalized.includes('sanagustin')) return 'San Agustin';
+      if (normalized.includes('santamaria')) return 'Santa Maria';
+      if (normalized.includes('santafe')) return 'Santa Fe';
+      if (normalized.includes('romblon')) return 'Romblon';
+      if (normalized.includes('sanfernando')) return 'San Fernando';
+      if (normalized.includes('cajidiocan')) return 'Cajidiocan';
+      return raw;
+    }
+
+    function normalizeCampusKey(value) {
+      return String(value || '')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '')
+        .replace(/[^a-z0-9]/g, '');
+    }
+
+    function formatTimestamp(value) {
+      if (!value) return '—';
+
+      const raw = String(value).trim();
+      let parsed = new Date(raw);
+      if (Number.isNaN(parsed.getTime()) && raw.includes(' ')) parsed = new Date(raw.replace(' ', 'T'));
+      if (Number.isNaN(parsed.getTime())) return raw;
+
+      const datePart = parsed.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      const timePart = parsed.toLocaleTimeString(undefined, {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      }).replace(/\s/g, '').toLowerCase();
+
+      return `${datePart} - ${timePart}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>
