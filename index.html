@@ -802,6 +802,8 @@
     }
     .modal-backdrop.show { display: flex; animation: backdrop-in .18s ease-out both; }
     .modal-backdrop.show .modal { animation: modal-pop .24s cubic-bezier(.2,.9,.25,1.18) both; }
+    #loadingModal { z-index: 90; }
+    #claimPhotoUploadModal { z-index: 95; }
     @keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes modal-pop { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
     .modal {
@@ -1110,14 +1112,13 @@
       background: #0f172a;
       box-shadow: 0 16px 35px rgba(15,23,42,.2);
     }
-    .claim-camera-frame video,
     .claim-camera-frame img {
       width: 100%;
       height: 100%;
       display: block;
       object-fit: cover;
+      background: #111827;
     }
-    .claim-camera-frame img { background: #111827; }
     .claim-camera-placeholder {
       position: absolute;
       inset: 0;
@@ -1539,18 +1540,16 @@
       </div>
 
       <div class="claim-camera-frame">
-        <video id="claimCameraVideo" autoplay muted playsinline></video>
         <img id="claimPhotoPreview" alt="Captured yearbook claim documentation preview" hidden />
         <div class="claim-camera-placeholder" id="claimCameraPlaceholder">
-          <div><span aria-hidden="true">📷</span>Preparing the portrait camera…</div>
+          <div><span aria-hidden="true">📱</span>Tap Open Phone Camera to take a portrait photo.</div>
         </div>
       </div>
 
-      <p class="camera-status" id="claimCameraStatus" aria-live="polite">Please allow camera access when prompted.</p>
+      <p class="camera-status" id="claimCameraStatus" aria-live="polite">The claimant must hold the yearbook clearly inside the portrait frame.</p>
 
       <div class="modal-actions camera-actions">
-        <button type="button" class="btn btn-primary" id="captureClaimPhotoBtn">Take Photo</button>
-        <button type="button" class="btn btn-secondary" id="fallbackClaimPhotoBtn" hidden>Open Phone Camera</button>
+        <button type="button" class="btn btn-primary" id="fallbackClaimPhotoBtn">Open Phone Camera</button>
         <button type="button" class="btn btn-secondary" id="recaptureClaimPhotoBtn" hidden>Recapture</button>
         <button type="button" class="btn btn-primary" id="finishClaimPhotoBtn" hidden>Finish</button>
       </div>
@@ -1709,7 +1708,7 @@
     const CONFIG = {
       // GitHub Pages uses HTTPS, which allows navigator.mediaDevices.getUserMedia.
       // Keep the deployed Apps Script /exec URL below so claims and photos can be saved.
-      appsScriptUrl: 'https://script.google.com/macros/s/AKfycbzvNqhNGusQ12tZDbs52ew3WN6QRtddH4hNU-x8452fC9l2fKe6IsRTxkzrSG1oMfnziQ/exec',
+      appsScriptUrl: 'https://script.google.com/macros/s/AKfycbxxlbwxX6sdpkyd4x7rh20Kn7evsZVnpMrLhKWcRkTItFZB_L-ApUSO0HYBqY27ZWqsZQ/exec',
       googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdIcr7-lC4Lm5zkYiRm_56rlV3vDbx5izsxV-dSuQc1einRRg/viewform',
       embeddedQrForUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdIcr7-lC4Lm5zkYiRm_56rlV3vDbx5izsxV-dSuQc1einRRg/viewform',
       embeddedQrDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAggAAAIIAQAAAAAjhyvOAAAFOElEQVR4nO2d0Y6bOwiEZ472/V95egEDzh6pN+uq1CKr3SZ/mk+2QjAM2KHww9t/PwUsYQlLWMISlrCEf4zwBQCM+wIICAAFgBARv4g7AsX4t14xYhZLuEX4AhDvKwiGSYhKu4DCIACBAqV80q+4MoYlzCGEPaRfUHgGe4V0EGJaRF7h8YorY1jCVAIJCAKgXB4AQgozICVK+h3h52NYwt8kfP3vCsXwE+kmIphAXlI9vDeGJcwhpD3Ee0zFT8QQiNAR9PWIL9IgyiomzGIJtwhhD/y8yPQLFD/dgepav2LCLJZwi/DxdtMhZBgEcC4dfv7+GJYwh1D2EEmkg4dOMYB4wulGpR5+7YRZLOEWwcoTcJqEFYYwD0tT7TjaJmbMYglXCQJIZCopS5KVX6ShZCKKlCp4En4+hiWMIFS+KdaHPj/4atU6rolKz0GL21fGsIRhhDAEQoAUWlTaQjwITQqU00xp84s3CdarFQFiRpNdwRD16SVc4bg4hiXMIXwBWbc4nAR8sVYFpSbRCefWL54kOH6QC1lINyHnFgLFWirSKjKi3Hr3owQSpBcNMfON8A0E40/GDGEo2vziRULFjbASackhOl+inNELikqKwOoPDxJcz4pPP608Qmo3wNIc0P1SlWBMmMUSbhHsH1Q1KrVmbd+AQ69EB5UbPzxLUMWM4QuYviEihwgsQpOKFJTVMzdpFkv4MeHUINMP0OWrCimO2pYqzNz6xYsE6w/dNsm6B4QY1fVvxEUcjbYjZrGEuwQiVohcENI4LEC0TFVFC4Hc9eJdAkt1cBohpAoRD/Im/6VAbr/9c4Rqlk1BoTpmj544FzXV6eixd2fCLJZwl0Ckb8iwkqRrXHURRw9t/u+rY1jCBEL328sm4VInXNDqjKPzTtSuvQmzWMJdwtkuF3ejzh2rAiN67F6pjiovjmEJYwh0HHk0xUXzQ5mKqkeOnZ6uf3iOUPt5acGB1q5Lh0Q8U7ULtW51ZQxLGEdI/8CwiNQahOyf8zatsptwJVr/8CZBdKusP/mpP8SNXkrO3TteLubMYgnX6hfVD/mxFhxHfxzqQ27rLduYMIsl3CJ0/8Nnz5w6YHB6EYolui6+8cOrBIa04JomWP2zFp5ScZCbZVDq1JxZLOGeXu1ee6A7X6olrnrnjueta4+YxRJuEeq8oEOV7Eap9BhH75zjh9qtMWIWS7hF8PlyZ3t9JZ8dUNa233jA3d/9MsFvfm3slssY1fBA0vv5KKqWkkGzWMI1vRpSHShYK4RzUVm9LjGqm+bujWEJswiEO2hplbpOG0yhMnf2Io+h2/rF04QsZ6c3EBURJt1cm92UzK3/tYNv1iyWcIHwvZk2N+fQp4mR1RiTS4V7au+NYQmDCAIcTaIbHSrFBLz1O8xGUvVWDprFEm7pUc4wVZklfBRlPcvDOixE3BnDEoYRqIwbSebObnfGZELhZlvkeqIKJ+fMYgn36hcgfZhYlC7ivOq8mwXwNpGtX7xKODsafPqol4tzj57PnzxOpVx7eJBwnGeen33Wnhs3OgDo40h7d9/Wu18lMG59VbYAb+Wr9LIyz9qMMWYWS7i1XtSJMMgTi+s4OfsHnUlGVsYzw5gwiyXcInx8Pw6As8shFgr0hr2qWXTZa8YslvBHCNVEWSHE536MaIKQs83dz/s6IU6EUUrWPpw0BWx34tOVDK1/eJWQ34rFSioO28gCuOOJ7LbdePJJwrfvx4lCRrQ4lIRdwaMYGzW8W2PjyecI378d7W+MYQlLWMISlrCEJfxbhF9pYO4gprGjggAAAABJRU5ErkJggg==',
@@ -1719,7 +1718,7 @@
       claimPhotoWidth: 1200,
       claimPhotoHeight: 1600,
       claimPhotoQuality: 0.88,
-      claimPhotoStatusTimeoutMs: 90000,
+      claimPhotoStatusTimeoutMs: 120000,
     };
 
     const CAMPUS_ABBREVIATIONS = {
@@ -1808,11 +1807,9 @@
 
     const claimCameraModal = document.getElementById('claimCameraModal');
     const cancelClaimCameraBtn = document.getElementById('cancelClaimCameraBtn');
-    const claimCameraVideo = document.getElementById('claimCameraVideo');
     const claimPhotoPreview = document.getElementById('claimPhotoPreview');
     const claimCameraPlaceholder = document.getElementById('claimCameraPlaceholder');
     const claimCameraStatus = document.getElementById('claimCameraStatus');
-    const captureClaimPhotoBtn = document.getElementById('captureClaimPhotoBtn');
     const fallbackClaimPhotoBtn = document.getElementById('fallbackClaimPhotoBtn');
     const recaptureClaimPhotoBtn = document.getElementById('recaptureClaimPhotoBtn');
     const finishClaimPhotoBtn = document.getElementById('finishClaimPhotoBtn');
@@ -1861,9 +1858,10 @@
     let isLogbookLoading = false;
     let currentSelectedRecord = null;
     let pendingClaimPhotoRecord = null;
-    let claimCameraStream = null;
     let capturedClaimPhotoDataUrl = '';
     let isClaimPhotoUploading = false;
+    let claimPhotoProgressTimer = null;
+    let claimPhotoUploadFrame = null;
     let currentLogbookRecords = [];
     let currentBookSpread = 0;
     let logbookRequestSequence = 0;
@@ -1903,8 +1901,7 @@
     claimYesBtn.addEventListener('click', handleClaimYes);
 
     cancelClaimCameraBtn.addEventListener('click', cancelClaimPhotoDocumentation);
-    captureClaimPhotoBtn.addEventListener('click', captureClaimPhoto);
-    fallbackClaimPhotoBtn.addEventListener('click', () => claimPhotoFallbackInput.click());
+    fallbackClaimPhotoBtn.addEventListener('click', () => openPhoneClaimCamera(false));
     claimPhotoFallbackInput.addEventListener('change', handleFallbackClaimPhoto);
     recaptureClaimPhotoBtn.addEventListener('click', recaptureClaimPhoto);
     finishClaimPhotoBtn.addEventListener('click', finishClaimPhoto);
@@ -2458,14 +2455,20 @@
       const isLogbook = kind === 'logbook';
       loadingEmoji.textContent = isLogbook ? '📖' : '🔎';
       loadingTitle.textContent = isLogbook
-        ? detail === 'claim' ? 'Updating the logbook' : 'Refreshing the logbook'
+        ? detail === 'claim'
+          ? 'Updating the logbook'
+          : detail === 'open'
+            ? 'Opening the logbook'
+            : 'Refreshing the logbook'
         : detail === 'first' ? 'Searching first names' : detail === 'last' ? 'Searching last names' : 'Searching records';
       loadingMessage.textContent = isLogbook
         ? detail === 'claim'
           ? 'Your new claim was saved. Fetching the newest logbook copy now.'
           : detail === 'initial'
             ? 'Preparing the first saved copy of the claimed alumni logbook.'
-            : 'Please wait while we fetch the newest claimed records.'
+            : detail === 'open'
+              ? 'Please wait while all saved claim records are prepared.'
+              : 'Please wait while we fetch the newest claimed records.'
         : 'Please wait while we check the alumni list.';
       openAccessibleModal(loadingModal, loadingDialog);
     }
@@ -2529,139 +2532,51 @@
     }
 
 
-    async function openClaimPhotoCamera(record) {
+    function openClaimPhotoCamera(record) {
       pendingClaimPhotoRecord = record ? { ...record } : null;
       capturedClaimPhotoDataUrl = '';
       claimPhotoFallbackInput.value = '';
       resetClaimCameraUi();
       closeFeedbackModal();
-      openAccessibleModal(claimCameraModal, captureClaimPhotoBtn);
-      await startClaimCamera();
+      openAccessibleModal(claimCameraModal, fallbackClaimPhotoBtn);
     }
 
     function resetClaimCameraUi() {
-      claimCameraVideo.hidden = false;
       claimPhotoPreview.hidden = true;
       claimPhotoPreview.removeAttribute('src');
       claimCameraPlaceholder.hidden = false;
-      claimCameraPlaceholder.innerHTML = '<div><span aria-hidden="true">📷</span>Preparing the portrait camera…</div>';
-      claimCameraStatus.textContent = 'Please allow camera access when prompted.';
-      captureClaimPhotoBtn.hidden = false;
-      captureClaimPhotoBtn.disabled = true;
-      fallbackClaimPhotoBtn.hidden = true;
+      claimCameraPlaceholder.innerHTML =
+        '<div><span aria-hidden="true">📱</span>Tap Open Phone Camera to take a portrait photo.</div>';
+      claimCameraStatus.textContent =
+        'The claimant must hold the yearbook clearly inside the portrait frame.';
+      fallbackClaimPhotoBtn.hidden = false;
+      fallbackClaimPhotoBtn.disabled = false;
       recaptureClaimPhotoBtn.hidden = true;
       finishClaimPhotoBtn.hidden = true;
     }
 
-    async function startClaimCamera() {
-      stopClaimCamera();
+    function openPhoneClaimCamera(isRecapture = false) {
+      if (isClaimPhotoUploading) return;
+
+      // Recapture removes the first photo from this page before reopening the
+      // native phone camera. It does not alter photos saved by the phone itself.
       capturedClaimPhotoDataUrl = '';
-      claimCameraVideo.hidden = false;
       claimPhotoPreview.hidden = true;
+      claimPhotoPreview.removeAttribute('src');
       claimCameraPlaceholder.hidden = false;
-      claimCameraPlaceholder.innerHTML = '<div><span aria-hidden="true">📷</span>Opening the portrait camera…</div>';
-      claimCameraStatus.textContent = 'Keep the claimant and the yearbook inside the portrait frame.';
-      captureClaimPhotoBtn.hidden = false;
-      captureClaimPhotoBtn.disabled = true;
-      fallbackClaimPhotoBtn.hidden = true;
-      recaptureClaimPhotoBtn.hidden = true;
-      finishClaimPhotoBtn.hidden = true;
-
-      if (!window.isSecureContext) {
-        showClaimCameraFallback(
-          'Live camera access requires HTTPS. Publish this page through GitHub Pages, not an unsecured HTTP link.'
-        );
-        return;
-      }
-
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showClaimCameraFallback('Live camera access is not supported by this browser.');
-        return;
-      }
-
-      const cameraAttempts = [
-        {
-          audio: false,
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 1920 },
-            aspectRatio: { ideal: 0.75 },
-          },
-        },
-        {
-          audio: false,
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 1920 },
-          },
-        },
-        { audio: false, video: true },
-      ];
-
-      let lastCameraError = null;
-
-      for (const constraints of cameraAttempts) {
-        try {
-          claimCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-          claimCameraVideo.srcObject = claimCameraStream;
-          await claimCameraVideo.play();
-          claimCameraPlaceholder.hidden = true;
-          captureClaimPhotoBtn.disabled = false;
-          claimCameraStatus.textContent = 'Ready. Make sure the claimant is holding the yearbook clearly.';
-          return;
-        } catch (error) {
-          lastCameraError = error;
-          stopClaimCamera();
-
-          if (
-            error &&
-            (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError')
-          ) {
-            break;
-          }
-        }
-      }
-
-      const denied = lastCameraError && (
-        lastCameraError.name === 'NotAllowedError' ||
-        lastCameraError.name === 'PermissionDeniedError'
-      );
-      showClaimCameraFallback(
-        denied
-          ? 'Camera permission was not granted. Allow camera access in the browser or use the phone camera button below.'
-          : 'The live camera could not be opened. Use the phone camera button below.'
-      );
-    }
-
-    function showClaimCameraFallback(message) {
-      stopClaimCamera();
-      claimCameraVideo.hidden = true;
-      claimCameraPlaceholder.hidden = false;
-      claimCameraPlaceholder.innerHTML = '<div><span aria-hidden="true">📱</span>Use your device camera to take the portrait photo.</div>';
-      claimCameraStatus.textContent = message;
-      captureClaimPhotoBtn.hidden = true;
+      claimCameraPlaceholder.innerHTML =
+        '<div><span aria-hidden="true">📷</span>Opening the phone camera…</div>';
+      claimCameraStatus.textContent = isRecapture
+        ? 'The previous preview was removed. Take a new portrait photo.'
+        : 'Take a portrait photo of the claimant holding the yearbook.';
       fallbackClaimPhotoBtn.hidden = false;
       recaptureClaimPhotoBtn.hidden = true;
       finishClaimPhotoBtn.hidden = true;
-    }
+      claimPhotoFallbackInput.value = '';
 
-    function captureClaimPhoto() {
-      if (
-        !claimCameraStream ||
-        !claimCameraVideo.videoWidth ||
-        !claimCameraVideo.videoHeight
-      ) {
-        claimCameraStatus.textContent = 'The camera is not ready yet. Please wait a moment.';
-        return;
-      }
-
-      drawSourceToClaimPhotoCanvas(
-        claimCameraVideo,
-        claimCameraVideo.videoWidth,
-        claimCameraVideo.videoHeight
-      );
-      showCapturedClaimPhoto();
+      // Keep this call synchronous with the button press so mobile browsers
+      // preserve the user gesture and open the native camera.
+      claimPhotoFallbackInput.click();
     }
 
     function drawSourceToClaimPhotoCanvas(source, sourceWidth, sourceHeight) {
@@ -2708,24 +2623,31 @@
       );
       claimPhotoPreview.src = capturedClaimPhotoDataUrl;
       claimPhotoPreview.hidden = false;
-      claimCameraVideo.hidden = true;
       claimCameraPlaceholder.hidden = true;
       claimCameraStatus.textContent = 'Review the portrait. Choose Recapture or Finish.';
-      captureClaimPhotoBtn.hidden = true;
       fallbackClaimPhotoBtn.hidden = true;
       recaptureClaimPhotoBtn.hidden = false;
       finishClaimPhotoBtn.hidden = false;
-      stopClaimCamera();
     }
 
     function handleFallbackClaimPhoto(event) {
       const file = event.target.files && event.target.files[0];
-      if (!file) return;
 
-      if (!file.type.startsWith('image/')) {
-        claimCameraStatus.textContent = 'Please select or capture an image file.';
+      if (!file) {
+        if (!capturedClaimPhotoDataUrl) resetClaimCameraUi();
         return;
       }
+
+      if (!file.type.startsWith('image/')) {
+        resetClaimCameraUi();
+        claimCameraStatus.textContent = 'Please capture an image file.';
+        return;
+      }
+
+      claimCameraPlaceholder.hidden = false;
+      claimCameraPlaceholder.innerHTML =
+        '<div><span aria-hidden="true">🖼️</span>Preparing the photo preview…</div>';
+      claimCameraStatus.textContent = 'Please wait while the portrait preview is prepared.';
 
       const objectUrl = URL.createObjectURL(file);
       const image = new Image();
@@ -2739,14 +2661,14 @@
       };
       image.onerror = () => {
         URL.revokeObjectURL(objectUrl);
-        claimCameraStatus.textContent = 'The selected image could not be opened. Please try again.';
+        resetClaimCameraUi();
+        claimCameraStatus.textContent = 'The captured image could not be opened. Please try again.';
       };
       image.src = objectUrl;
     }
 
     function recaptureClaimPhoto() {
-      claimPhotoFallbackInput.value = '';
-      startClaimCamera();
+      openPhoneClaimCamera(true);
     }
 
     function finishClaimPhoto() {
@@ -2755,7 +2677,6 @@
         return;
       }
 
-      stopClaimCamera();
       closeAccessibleModal(claimCameraModal);
       openAccessibleModal(claimPhotoCampusModal, claimPhotoCampusButtons[0]);
     }
@@ -2763,13 +2684,13 @@
     function cancelClaimPhotoDocumentation() {
       if (isClaimPhotoUploading) return;
 
-      stopClaimCamera();
       closeAccessibleModal(claimCameraModal);
       closeAccessibleModal(claimPhotoCampusModal);
       const claimantName = pendingClaimPhotoRecord
         ? formatLogbookName(pendingClaimPhotoRecord)
         : 'The claimant';
       capturedClaimPhotoDataUrl = '';
+      claimPhotoFallbackInput.value = '';
       pendingClaimPhotoRecord = null;
       showFeedback(
         'warning',
@@ -2779,11 +2700,8 @@
     }
 
     function stopClaimCamera() {
-      if (claimCameraStream) {
-        claimCameraStream.getTracks().forEach((track) => track.stop());
-      }
-      claimCameraStream = null;
-      claimCameraVideo.srcObject = null;
+      // Native file-input capture does not create a MediaStream.
+      claimPhotoFallbackInput.value = '';
     }
 
     async function uploadClaimPhoto(campus) {
@@ -2798,13 +2716,13 @@
 
       isClaimPhotoUploading = true;
       closeAccessibleModal(claimPhotoCampusModal);
-      updateClaimPhotoProgress(0, 'Preparing the portrait photo…');
+      updateClaimPhotoProgress(1, 'Checking the Google Drive destination…');
       claimPhotoUploadMessage.textContent = `Uploading to the ${campus} folder in Google Drive.`;
       openAccessibleModal(claimPhotoUploadModal);
 
       const uploadToken = createClaimPhotoUploadToken();
       const record = pendingClaimPhotoRecord;
-      const body = new URLSearchParams({
+      const fields = {
         action: 'upload_claim_photo',
         uploadToken,
         campus,
@@ -2816,45 +2734,29 @@
         claimedDate: String(
           firstNonEmpty(record.dateClaimed, record.claimedDate, new Date().toISOString())
         ),
-      });
-
-      let pollingStarted = false;
-      const beginStatusPolling = () => {
-        if (pollingStarted) return;
-        pollingStarted = true;
-        pollClaimPhotoUploadStatus(uploadToken, campus);
       };
 
       try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', CONFIG.appsScriptUrl, true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
+        // Validate Drive permissions and prepare the destination folder before
+        // transmitting the large portrait payload.
+        const prepared = await jsonpRequest(CONFIG.appsScriptUrl, {
+          action: 'claim_photo_prepare',
+          uploadToken,
+          campus,
+        });
 
-        xhr.upload.addEventListener('progress', (event) => {
-          if (!event.lengthComputable) return;
-          const transferredPercent = Math.round((event.loaded / event.total) * 90);
-          updateClaimPhotoProgress(
-            Math.max(1, Math.min(90, transferredPercent)),
-            transferredPercent < 90
-              ? 'Uploading photo data…'
-              : 'Photo received. Saving to Drive…'
+        if (!prepared || prepared.ok !== true) {
+          throw new Error(
+            prepared?.error ||
+            prepared?.message ||
+            'The Google Drive destination could not be prepared.'
           );
-          if (event.loaded >= event.total) {
-            window.setTimeout(beginStatusPolling, 250);
-          }
-        });
+        }
 
-        // Apps Script accepts the cross-origin form POST. Some browsers do not
-        // expose the redirected response because of CORS, so the separate
-        // JSONP status endpoint confirms that Drive finished saving the file.
-        xhr.addEventListener('loadend', beginStatusPolling);
-        xhr.addEventListener('error', beginStatusPolling);
-        xhr.addEventListener('abort', () => {
-          finishClaimPhotoUploadWithError('The photo upload was cancelled.');
-        });
-        xhr.send(body.toString());
-
-        window.setTimeout(beginStatusPolling, 1200);
+        updateClaimPhotoProgress(8, 'Opening a secure upload connection…');
+        submitClaimPhotoThroughHiddenForm(fields);
+        startClaimPhotoProgressSimulation();
+        await pollClaimPhotoUploadStatus(uploadToken, campus);
       } catch (error) {
         finishClaimPhotoUploadWithError(
           error.message || 'The documentation photo could not be uploaded.'
@@ -2862,9 +2764,79 @@
       }
     }
 
+    function submitClaimPhotoThroughHiddenForm(fields) {
+      cleanupClaimPhotoUploadTransport();
+
+      const frameName = `claimPhotoUploadFrame_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const iframe = document.createElement('iframe');
+      iframe.name = frameName;
+      iframe.title = 'Claim photo upload transport';
+      iframe.hidden = true;
+      iframe.setAttribute('aria-hidden', 'true');
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = CONFIG.appsScriptUrl;
+      form.target = frameName;
+      form.enctype = 'multipart/form-data';
+      form.hidden = true;
+
+      Object.entries(fields).forEach(([name, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value == null ? '' : String(value);
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(iframe);
+      document.body.appendChild(form);
+      claimPhotoUploadFrame = iframe;
+
+      // A normal form navigation is not blocked by CORS, making it reliable
+      // for GitHub Pages to submit a large photo to Apps Script.
+      form.submit();
+      window.setTimeout(() => form.remove(), 1500);
+    }
+
+    function startClaimPhotoProgressSimulation() {
+      stopClaimPhotoProgressSimulation();
+      let percent = 10;
+      updateClaimPhotoProgress(percent, 'Sending the portrait photo…');
+
+      claimPhotoProgressTimer = window.setInterval(() => {
+        if (!isClaimPhotoUploading) {
+          stopClaimPhotoProgressSimulation();
+          return;
+        }
+
+        percent = Math.min(88, percent + (percent < 55 ? 5 : percent < 75 ? 3 : 1));
+        updateClaimPhotoProgress(
+          percent,
+          percent < 70
+            ? 'Uploading the portrait photo…'
+            : 'Photo sent. Waiting for Google Drive…'
+        );
+      }, 650);
+    }
+
+    function stopClaimPhotoProgressSimulation() {
+      if (claimPhotoProgressTimer) {
+        window.clearInterval(claimPhotoProgressTimer);
+        claimPhotoProgressTimer = null;
+      }
+    }
+
+    function cleanupClaimPhotoUploadTransport() {
+      if (claimPhotoUploadFrame && claimPhotoUploadFrame.isConnected) {
+        claimPhotoUploadFrame.remove();
+      }
+      claimPhotoUploadFrame = null;
+    }
+
     async function pollClaimPhotoUploadStatus(uploadToken, campus) {
-      const deadline = Date.now() + Number(CONFIG.claimPhotoStatusTimeoutMs || 90000);
-      let processingPercent = 91;
+      const deadline = Date.now() + Number(CONFIG.claimPhotoStatusTimeoutMs || 120000);
+      let processingPercent = 89;
 
       while (Date.now() < deadline && isClaimPhotoUploading) {
         if (!navigator.onLine) {
@@ -2879,6 +2851,7 @@
           });
 
           if (status && status.state === 'saved') {
+            stopClaimPhotoProgressSimulation();
             updateClaimPhotoProgress(100, 'Upload complete.');
             const claimantName = pendingClaimPhotoRecord
               ? formatLogbookName(pendingClaimPhotoRecord)
@@ -2887,7 +2860,9 @@
             window.setTimeout(() => {
               closeAccessibleModal(claimPhotoUploadModal);
               isClaimPhotoUploading = false;
+              cleanupClaimPhotoUploadTransport();
               capturedClaimPhotoDataUrl = '';
+              claimPhotoFallbackInput.value = '';
               pendingClaimPhotoRecord = null;
               showFeedback(
                 'success',
@@ -2904,22 +2879,26 @@
             );
             return;
           }
+
+          if (status && status.state === 'processing') {
+            stopClaimPhotoProgressSimulation();
+            processingPercent = Math.min(98, processingPercent + 1);
+            updateClaimPhotoProgress(processingPercent, 'Saving the photo to Google Drive…');
+          }
         } catch (error) {
           if (!navigator.onLine) {
             finishClaimPhotoUploadWithError('The internet connection was lost during the photo upload.');
             return;
           }
-          // A transient status-check failure is retried until the deadline.
+          // Temporary status-check failures are retried until the deadline.
         }
 
-        processingPercent = Math.min(98, processingPercent + 1);
-        updateClaimPhotoProgress(processingPercent, 'Saving the photo to Google Drive…');
         await delay(1200);
       }
 
       if (isClaimPhotoUploading) {
         finishClaimPhotoUploadWithError(
-          'The upload confirmation timed out. Check the campus folder before trying again.'
+          'The server did not receive the photo upload. Redeploy the latest Apps Script version and try again.'
         );
       }
     }
@@ -2927,6 +2906,8 @@
     function finishClaimPhotoUploadWithError(message) {
       if (!isClaimPhotoUploading) return;
       isClaimPhotoUploading = false;
+      stopClaimPhotoProgressSimulation();
+      cleanupClaimPhotoUploadTransport();
       closeAccessibleModal(claimPhotoUploadModal);
       showFeedback('error', 'Photo Upload Failed', message);
     }
@@ -3108,7 +3089,7 @@
         }
 
         if (!navigator.onLine) {
-          hideLoadingModal();
+          if (showLoader) hideLoadingModal();
           showOfflineModal('logbook');
         } else if (!silent && !logbookModal.classList.contains('show')) {
           showFeedback('error', 'Logbook Unavailable', error.message || 'Unable to load the logbook list.');
@@ -3119,7 +3100,7 @@
           isLogbookLoading = false;
           refreshLogbookBtn.disabled = false;
           bookShell.classList.remove('book-loading');
-          hideLoadingModal();
+          if (showLoader) hideLoadingModal();
         }
       }
     }
@@ -3215,16 +3196,32 @@
       }).format(parsed);
     }
 
-    function openLogbookModal() {
-      closeFeedbackModal();
-      openAccessibleModal(logbookModal, closeLogbookModalBtn);
-      currentBookSpread = 0;
-      renderLogbookList(currentLogbookRecords);
+    async function openLogbookModal() {
+      if (isLogbookLoading) return;
 
-      // Fetch only on the very first use when this device has no saved copy.
-      if (!hasLogbookCache && !currentLogbookRecords.length) {
-        loadLogbookList({ showLoader: true, reason: 'initial' });
+      closeFeedbackModal();
+      showLoadingModal('logbook', 'open');
+      currentBookSpread = 0;
+
+      try {
+        // Fetch only on the first use when this device has no saved copy.
+        if (!hasLogbookCache && !currentLogbookRecords.length) {
+          await loadLogbookList({ showLoader: false, reason: 'initial' });
+        } else {
+          renderLogbookList(currentLogbookRecords);
+        }
+
+        // Give the browser time to finish building the complete record list.
+        await new Promise((resolve) => {
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(resolve);
+          });
+        });
+      } finally {
+        hideLoadingModal();
       }
+
+      openAccessibleModal(logbookModal, closeLogbookModalBtn);
     }
 
     function closeLogbookModal() {
