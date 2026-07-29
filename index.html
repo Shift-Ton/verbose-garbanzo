@@ -34,6 +34,8 @@
     }
 
     * , *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Always honor HTML/JavaScript hidden states on mobile browsers. */
+    [hidden] { display: none !important; }
     html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
     html, body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -1113,15 +1115,20 @@
       box-shadow: 0 16px 35px rgba(15,23,42,.2);
     }
     .claim-camera-frame img {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
       width: 100%;
       height: 100%;
       display: block;
       object-fit: cover;
       background: #111827;
     }
+    .claim-camera-frame img[hidden] { display: none !important; }
     .claim-camera-placeholder {
       position: absolute;
       inset: 0;
+      z-index: 2;
       display: grid;
       place-items: center;
       padding: 20px;
@@ -1131,6 +1138,7 @@
         radial-gradient(circle at center, rgba(34,197,94,.2), transparent 55%),
         #0f172a;
     }
+    .claim-camera-placeholder[hidden] { display: none !important; }
     .claim-camera-placeholder span {
       display: block;
       margin-bottom: 8px;
@@ -2570,6 +2578,16 @@
     }
 
 
+    function setClaimPhotoElementHidden(element, shouldHide) {
+      if (!element) return;
+      element.hidden = Boolean(shouldHide);
+      if (shouldHide) {
+        element.style.setProperty('display', 'none', 'important');
+      } else {
+        element.style.removeProperty('display');
+      }
+    }
+
     function releaseClaimPhotoPreviewObjectUrl() {
       if (!claimPhotoPreviewObjectUrl) return;
       try {
@@ -2581,7 +2599,7 @@
     function cancelPendingClaimPhotoProcessing() {
       claimPhotoProcessingSequence += 1;
       isClaimPhotoProcessing = false;
-      claimPreviewProcessing.hidden = true;
+      setClaimPhotoElementHidden(claimPreviewProcessing, true);
     }
 
     function openClaimPhotoCamera(record) {
@@ -2598,18 +2616,20 @@
     function resetClaimCameraUi() {
       cancelPendingClaimPhotoProcessing();
       releaseClaimPhotoPreviewObjectUrl();
-      claimPhotoPreview.hidden = true;
+      claimPhotoPreview.onload = null;
+      claimPhotoPreview.onerror = null;
+      setClaimPhotoElementHidden(claimPhotoPreview, true);
       claimPhotoPreview.removeAttribute('src');
-      claimCameraPlaceholder.hidden = false;
+      setClaimPhotoElementHidden(claimCameraPlaceholder, false);
       claimCameraPlaceholder.innerHTML =
         '<div><span aria-hidden="true">📱</span>Tap Open Phone Camera to take a portrait photo.</div>';
       claimCameraStatus.textContent =
         'The claimant must hold the yearbook clearly inside the portrait frame.';
-      fallbackClaimPhotoBtn.hidden = false;
+      setClaimPhotoElementHidden(fallbackClaimPhotoBtn, false);
       fallbackClaimPhotoBtn.disabled = false;
-      recaptureClaimPhotoBtn.hidden = true;
+      setClaimPhotoElementHidden(recaptureClaimPhotoBtn, true);
       recaptureClaimPhotoBtn.disabled = false;
-      finishClaimPhotoBtn.hidden = true;
+      setClaimPhotoElementHidden(finishClaimPhotoBtn, true);
       finishClaimPhotoBtn.disabled = true;
     }
 
@@ -2620,17 +2640,19 @@
       cancelPendingClaimPhotoProcessing();
       releaseClaimPhotoPreviewObjectUrl();
       capturedClaimPhotoDataUrl = '';
-      claimPhotoPreview.hidden = true;
+      claimPhotoPreview.onload = null;
+      claimPhotoPreview.onerror = null;
+      setClaimPhotoElementHidden(claimPhotoPreview, true);
       claimPhotoPreview.removeAttribute('src');
-      claimCameraPlaceholder.hidden = false;
+      setClaimPhotoElementHidden(claimCameraPlaceholder, false);
       claimCameraPlaceholder.innerHTML =
         '<div><span aria-hidden="true">📷</span>Opening the phone camera…</div>';
       claimCameraStatus.textContent = isRecapture
         ? 'The previous photo was removed. Take a new portrait photo.'
         : 'Take a portrait photo of the claimant holding the yearbook.';
-      fallbackClaimPhotoBtn.hidden = false;
-      recaptureClaimPhotoBtn.hidden = true;
-      finishClaimPhotoBtn.hidden = true;
+      setClaimPhotoElementHidden(fallbackClaimPhotoBtn, false);
+      setClaimPhotoElementHidden(recaptureClaimPhotoBtn, true);
+      setClaimPhotoElementHidden(finishClaimPhotoBtn, true);
       finishClaimPhotoBtn.disabled = true;
       claimPhotoFallbackInput.value = '';
 
@@ -2738,7 +2760,7 @@
 
         capturedClaimPhotoDataUrl = dataUrl;
         isClaimPhotoProcessing = false;
-        claimPreviewProcessing.hidden = true;
+        setClaimPhotoElementHidden(claimPreviewProcessing, true);
         finishClaimPhotoBtn.disabled = false;
         claimCameraStatus.textContent = 'Photo ready. Choose Recapture or Finish.';
 
@@ -2752,18 +2774,18 @@
       } catch (error) {
         if (processingId !== claimPhotoProcessingSequence) return;
         isClaimPhotoProcessing = false;
-        claimPreviewProcessing.hidden = true;
+        setClaimPhotoElementHidden(claimPreviewProcessing, true);
         capturedClaimPhotoDataUrl = '';
         releaseClaimPhotoPreviewObjectUrl();
-        claimPhotoPreview.hidden = true;
+        setClaimPhotoElementHidden(claimPhotoPreview, true);
         claimPhotoPreview.removeAttribute('src');
-        claimCameraPlaceholder.hidden = false;
+        setClaimPhotoElementHidden(claimCameraPlaceholder, false);
         claimCameraPlaceholder.innerHTML =
           '<div><span aria-hidden="true">😿</span>The photo could not be prepared. Tap Recapture.</div>';
         claimCameraStatus.textContent = error?.message || 'The captured image could not be opened. Please try again.';
-        fallbackClaimPhotoBtn.hidden = true;
-        recaptureClaimPhotoBtn.hidden = false;
-        finishClaimPhotoBtn.hidden = true;
+        setClaimPhotoElementHidden(fallbackClaimPhotoBtn, true);
+        setClaimPhotoElementHidden(recaptureClaimPhotoBtn, false);
+        setClaimPhotoElementHidden(finishClaimPhotoBtn, true);
         finishClaimPhotoBtn.disabled = true;
       } finally {
         if (decodedSource && typeof decodedSource.close === 'function') {
@@ -2794,14 +2816,35 @@
 
       // Show the local camera file immediately. This does not use internet.
       claimPhotoPreviewObjectUrl = URL.createObjectURL(file);
+      setClaimPhotoElementHidden(claimPhotoPreview, false);
+      setClaimPhotoElementHidden(claimCameraPlaceholder, true);
+      setClaimPhotoElementHidden(claimPreviewProcessing, false);
+
+      // Some Android browsers can reject a temporary blob URL after returning
+      // from the native camera. Fall back to a local data URL for the preview.
+      claimPhotoPreview.onerror = () => {
+        claimPhotoPreview.onerror = null;
+        const localReader = new FileReader();
+        localReader.onload = () => {
+          if (processingId !== claimPhotoProcessingSequence) return;
+          claimPhotoPreview.src = String(localReader.result || '');
+          setClaimPhotoElementHidden(claimPhotoPreview, false);
+          setClaimPhotoElementHidden(claimCameraPlaceholder, true);
+        };
+        localReader.onerror = () => {
+          if (processingId !== claimPhotoProcessingSequence) return;
+          setClaimPhotoElementHidden(claimPhotoPreview, true);
+          setClaimPhotoElementHidden(claimCameraPlaceholder, false);
+          claimCameraPlaceholder.innerHTML =
+            '<div><span aria-hidden="true">😿</span>The preview could not be displayed. Tap Recapture.</div>';
+        };
+        localReader.readAsDataURL(file);
+      };
       claimPhotoPreview.src = claimPhotoPreviewObjectUrl;
-      claimPhotoPreview.hidden = false;
-      claimCameraPlaceholder.hidden = true;
-      claimPreviewProcessing.hidden = false;
       claimCameraStatus.textContent = 'Preview shown. Preparing a smaller portrait copy for faster upload…';
-      fallbackClaimPhotoBtn.hidden = true;
-      recaptureClaimPhotoBtn.hidden = false;
-      finishClaimPhotoBtn.hidden = false;
+      setClaimPhotoElementHidden(fallbackClaimPhotoBtn, true);
+      setClaimPhotoElementHidden(recaptureClaimPhotoBtn, false);
+      setClaimPhotoElementHidden(finishClaimPhotoBtn, false);
       finishClaimPhotoBtn.disabled = true;
 
       prepareCapturedClaimPhoto(file, claimPhotoPreviewObjectUrl, processingId);
