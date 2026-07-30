@@ -34,7 +34,8 @@
     }
 
     * , *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    /* Always honor HTML/JavaScript hidden states on mobile browsers. */
+    /* Mobile-browser safeguard: hidden UI must never remain visible because
+       of a more specific display:block/grid/flex rule. */
     [hidden] { display: none !important; }
     html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
     html, body {
@@ -1116,8 +1117,8 @@
     }
     .claim-camera-frame img {
       position: absolute;
+      z-index: 2;
       inset: 0;
-      z-index: 1;
       width: 100%;
       height: 100%;
       display: block;
@@ -1127,8 +1128,8 @@
     .claim-camera-frame img[hidden] { display: none !important; }
     .claim-camera-placeholder {
       position: absolute;
+      z-index: 1;
       inset: 0;
-      z-index: 2;
       display: grid;
       place-items: center;
       padding: 20px;
@@ -1149,7 +1150,7 @@
       right: 10px;
       bottom: 10px;
       left: 10px;
-      z-index: 3;
+      z-index: 4;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2580,11 +2581,28 @@
 
     function setClaimPhotoElementHidden(element, shouldHide) {
       if (!element) return;
-      element.hidden = Boolean(shouldHide);
+
       if (shouldHide) {
+        element.hidden = true;
+        element.setAttribute('hidden', '');
         element.style.setProperty('display', 'none', 'important');
-      } else {
-        element.style.removeProperty('display');
+        return;
+      }
+
+      element.hidden = false;
+      element.removeAttribute('hidden');
+      element.style.removeProperty('display');
+
+      // Some Android browsers keep an old computed display value after
+      // returning from the native camera. Force the correct visible display.
+      if (element === claimPhotoPreview) {
+        element.style.setProperty('display', 'block', 'important');
+      } else if (element === claimCameraPlaceholder) {
+        element.style.setProperty('display', 'grid', 'important');
+      } else if (element === claimPreviewProcessing) {
+        element.style.setProperty('display', 'flex', 'important');
+      } else if (element.classList && element.classList.contains('btn')) {
+        element.style.setProperty('display', 'inline-flex', 'important');
       }
     }
 
@@ -2616,8 +2634,6 @@
     function resetClaimCameraUi() {
       cancelPendingClaimPhotoProcessing();
       releaseClaimPhotoPreviewObjectUrl();
-      claimPhotoPreview.onload = null;
-      claimPhotoPreview.onerror = null;
       setClaimPhotoElementHidden(claimPhotoPreview, true);
       claimPhotoPreview.removeAttribute('src');
       setClaimPhotoElementHidden(claimCameraPlaceholder, false);
@@ -2640,8 +2656,6 @@
       cancelPendingClaimPhotoProcessing();
       releaseClaimPhotoPreviewObjectUrl();
       capturedClaimPhotoDataUrl = '';
-      claimPhotoPreview.onload = null;
-      claimPhotoPreview.onerror = null;
       setClaimPhotoElementHidden(claimPhotoPreview, true);
       claimPhotoPreview.removeAttribute('src');
       setClaimPhotoElementHidden(claimCameraPlaceholder, false);
@@ -2768,9 +2782,20 @@
         // that will be uploaded. The temporary URL is released after loading.
         claimPhotoPreview.onload = () => {
           claimPhotoPreview.onload = null;
+          setClaimPhotoElementHidden(claimPhotoPreview, false);
+          setClaimPhotoElementHidden(claimCameraPlaceholder, true);
           releaseClaimPhotoPreviewObjectUrl();
         };
+        claimPhotoPreview.onerror = () => {
+          claimPhotoPreview.onerror = null;
+          // Keep the already-visible local preview when the optimized copy
+          // cannot be repainted immediately.
+          setClaimPhotoElementHidden(claimPhotoPreview, false);
+          setClaimPhotoElementHidden(claimCameraPlaceholder, true);
+        };
         claimPhotoPreview.src = capturedClaimPhotoDataUrl;
+        setClaimPhotoElementHidden(claimPhotoPreview, false);
+        setClaimPhotoElementHidden(claimCameraPlaceholder, true);
       } catch (error) {
         if (processingId !== claimPhotoProcessingSequence) return;
         isClaimPhotoProcessing = false;
@@ -2814,16 +2839,18 @@
       const processingId = ++claimPhotoProcessingSequence;
       isClaimPhotoProcessing = true;
 
-      // Show the local camera file immediately. This does not use internet.
+      // Show the local camera file immediately. This never uses internet.
       claimPhotoPreviewObjectUrl = URL.createObjectURL(file);
-      setClaimPhotoElementHidden(claimPhotoPreview, false);
-      setClaimPhotoElementHidden(claimCameraPlaceholder, true);
-      setClaimPhotoElementHidden(claimPreviewProcessing, false);
-
-      // Some Android browsers can reject a temporary blob URL after returning
-      // from the native camera. Fall back to a local data URL for the preview.
+      claimPhotoPreview.onload = () => {
+        claimPhotoPreview.onload = null;
+        setClaimPhotoElementHidden(claimPhotoPreview, false);
+        setClaimPhotoElementHidden(claimCameraPlaceholder, true);
+      };
       claimPhotoPreview.onerror = () => {
         claimPhotoPreview.onerror = null;
+
+        // Android fallback: some browsers cannot display a temporary blob URL
+        // after returning from the native camera, so read the local file.
         const localReader = new FileReader();
         localReader.onload = () => {
           if (processingId !== claimPhotoProcessingSequence) return;
@@ -2840,12 +2867,22 @@
         };
         localReader.readAsDataURL(file);
       };
+
       claimPhotoPreview.src = claimPhotoPreviewObjectUrl;
-      claimCameraStatus.textContent = 'Preview shown. Preparing a smaller portrait copy for faster upload…';
+      setClaimPhotoElementHidden(claimPhotoPreview, false);
+      setClaimPhotoElementHidden(claimCameraPlaceholder, true);
+      setClaimPhotoElementHidden(claimPreviewProcessing, false);
+      claimCameraStatus.textContent = 'Photo selected. Preparing the portrait preview…';
       setClaimPhotoElementHidden(fallbackClaimPhotoBtn, true);
       setClaimPhotoElementHidden(recaptureClaimPhotoBtn, false);
       setClaimPhotoElementHidden(finishClaimPhotoBtn, false);
       finishClaimPhotoBtn.disabled = true;
+
+      // Allow the browser to paint the local image before heavy decoding.
+      requestAnimationFrame(() => {
+        setClaimPhotoElementHidden(claimPhotoPreview, false);
+        setClaimPhotoElementHidden(claimCameraPlaceholder, true);
+      });
 
       prepareCapturedClaimPhoto(file, claimPhotoPreviewObjectUrl, processingId);
     }
