@@ -2004,14 +2004,20 @@
       if (claimModal.classList.contains('show') && !isClaimSubmitting) closeClaimModal();
     });
 
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       if (window.location.protocol === 'file:') {
         console.info(
           'RSU Yearbook Lookup: local file mode detected. The page is self-contained, but using the included local-server launcher avoids browser file-origin restrictions.'
         );
       }
+
       syncNameFieldOrder();
-      restoreLogbookCache();
+
+      // A true browser reload starts a fresh app cache. Normal navigation back
+      // to this page may still restore the previously saved logbook.
+      const cacheWasReset = await resetAppCacheOnReload();
+      if (!cacheWasReset) restoreLogbookCache();
+
       if (!navigator.onLine) showOfflineModal('startup');
       firstNameInput.focus({ preventScroll: true });
     });
@@ -2025,6 +2031,73 @@
       closeOfflineModal();
       setStatus('Internet connection restored.', 'success');
     });
+
+    function wasPageReloaded() {
+      try {
+        const navigationEntry = window.performance
+          && typeof window.performance.getEntriesByType === 'function'
+          ? window.performance.getEntriesByType('navigation')[0]
+          : null;
+
+        if (navigationEntry && navigationEntry.type) {
+          return navigationEntry.type === 'reload';
+        }
+
+        // Compatibility fallback for older mobile browsers.
+        return Boolean(
+          window.performance
+          && window.performance.navigation
+          && window.performance.navigation.type === 1
+        );
+      } catch (error) {
+        console.warn('Unable to determine the page navigation type.', error);
+        return false;
+      }
+    }
+
+    async function resetAppCacheOnReload() {
+      if (!wasPageReloaded()) return false;
+
+      // Reset in-memory logbook state first so no stale records can be rendered.
+      currentLogbookRecords = [];
+      currentBookSpread = 0;
+      hasLogbookCache = false;
+      logbookRequestSequence += 1;
+
+      const logbookKeyPrefix = 'rsu-yearbook-claimed-logbook-';
+
+      try {
+        const keysToRemove = [];
+        for (let index = 0; index < window.localStorage.length; index += 1) {
+          const key = window.localStorage.key(index);
+          if (
+            key
+            && (key === CONFIG.logbookCacheKey || key.startsWith(logbookKeyPrefix))
+          ) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+      } catch (error) {
+        console.warn('Unable to clear the saved logbook cache after reload.', error);
+      }
+
+      try {
+        const sessionKeysToRemove = [];
+        for (let index = 0; index < window.sessionStorage.length; index += 1) {
+          const key = window.sessionStorage.key(index);
+          if (key && key.startsWith(logbookKeyPrefix)) sessionKeysToRemove.push(key);
+        }
+        sessionKeysToRemove.forEach((key) => window.sessionStorage.removeItem(key));
+      } catch (error) {
+        console.warn('Unable to clear the temporary logbook cache after reload.', error);
+      }
+
+      renderLogbookList([]);
+      logbookLastUpdated.textContent = 'Fresh session • previous cache cleared';
+      console.info('RSU Yearbook Lookup: previous logbook cache cleared after page reload.');
+      return true;
+    }
 
     function syncNameFieldOrder() {
       const hasFirstName = Boolean(firstNameInput.value.trim());
